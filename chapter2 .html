@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Theory — Chapter 2 (A Gentle Start)</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#2563eb; --secondary:#3b82f6; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:56px 22px;
+      background:linear-gradient(135deg,#1e3a8a,#2563eb);
+      color:#fff; border-radius:20px; margin-bottom:34px;
+    }
+    header h1{margin:0; font-size:2.35rem;}
+    header p{margin:10px 0 0; opacity:.92;}
+
+    /* 섹션 및 드롭다운 스타일 */
+    section{
+      background:var(--card); padding:0; border-radius:20px;
+      margin-bottom:26px; box-shadow:0 6px 16px rgba(2,8,23,.06);
+      border:1px solid rgba(226,232,240,.6);
+      overflow: hidden;
+    }
+    details { width: 100%; }
+    summary {
+      list-style: none;
+      padding: 24px 30px;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s ease;
+    }
+    summary:hover { background: #f1f5f9; }
+    summary::-webkit-details-marker { display: none; }
+
+    h2{
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color:var(--primary);
+      border-left:5px solid var(--primary);
+      padding-left:14px; margin:0;
+      font-size:1.55rem;
+    }
+    /* 드롭다운 화살표를 -> 기호로 변경 */
+    h2::after {
+      content: '->';
+      font-size: 1.1rem;
+      transition: transform 0.3s ease;
+      color: var(--muted);
+      font-weight: bold;
+    }
+    details[open] h2::after {
+      transform: rotate(90deg); /* 열릴 때 방향 전환 */
+    }
+
+    .content { padding: 0 36px 36px 36px; }
+
+    h3{color:var(--secondary); margin:22px 0 10px; font-size:1.15rem;}
+    h4{margin:16px 0 8px; font-size:1.02rem; color:#0f172a;}
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:14px 18px; border-radius:12px; margin:14px 0;
+      font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:16px 18px; border-radius:12px;
+      margin:16px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .highlight{
+      background:#fef3c7; padding:4px 8px; border-radius:6px; font-weight:700;
+    }
+    .warn{
+      background:#fff7ed; border:1px solid #fed7aa; color:#9a3412;
+      padding:10px 12px; border-radius:12px; margin:14px 0;
+      font-weight:600;
+    }
+    .muted{color:var(--muted);}
+    ul{margin:10px 0 0 20px;}
+    li{margin:6px 0;}
+    table{
+      width:100%; border-collapse:collapse; margin:16px 0;
+      overflow:hidden; border-radius:14px;
+    }
+    th,td{padding:12px; border:1px solid var(--border); text-align:left;}
+    th{background:#f8fafc; color:var(--primary);}
+    .grid2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+    @media (max-width:900px){ .grid2{grid-template-columns:1fr;} }
+
+    .step{
+      border:2px solid var(--border); border-radius:14px;
+      padding:16px 18px; margin:12px 0;
+      transition:transform .12s ease, border-color .12s ease;
+      background:#fff;
+    }
+    .step:hover{transform:translateY(-2px); border-color:var(--secondary);}
+    .bad{color:#dc2626; font-weight:800;}
+    .good{color:#16a34a; font-weight:800;}
+    .summary-box{
+      background:#f0fdf4; border:1px solid #bbf7d0;
+      padding:22px; border-radius:16px;
+    }
+    .chip{
+      display:inline-block; font-size:.85rem; padding:3px 8px;
+      border-radius:999px; border:1px solid var(--border);
+      background:#fff; color:#0f172a; margin-right:6px;
+    }
+    .footer{
+      text-align:center; color:var(--muted);
+      font-size:.9rem; margin:30px 0 10px;
+    }
+    code.k{background:#0b1220; color:#e2e8f0; padding:2px 6px; border-radius:6px;}
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <header>
+    <h1>2. A Gentle Start</h1>
+    <p>학습의 수학적 정의 -> ERM -> 과적합 -> Inductive Bias -> (유한 \(\mathcal H\)) 일반화 보장</p>
+  </header>
+
+  <section>
+    <details open>
+      <summary><h2># 2. A Gentle Start — 이 장의 목적</h2></summary>
+      <div class="content">
+        <p>이 장의 목표는 단 하나다.</p>
+        <div class="quote">“학습(learning)이란 것을 수학적으로 어떻게 정의할 것인가?”</div>
+        <p class="muted">
+          아직 알고리즘도, 신경망도 안 나온다. 이 단계에서는
+          <span class="highlight">환경, 데이터, 예측기, 오차</span>를 수학적으로 정확히 정의한다.
+        </p>
+      </div>
+    </details>
+  </section>
+
+    <section>
+    <details>
+        <summary><h2>2.0 파파야 예제 (직관적 도입)</h2></summary>
+        <div class="content">
+
+        <h3>문제의 본질</h3>
+        <ul>
+            <li>우리는 어떤 대상을 보고 <b>라벨을 예측</b>해야 한다</li>
+            <li>정답은 실제로 먹어보기 전까지 모른다</li>
+            <li>이 구조 자체가 <b>지도학습(supervised learning)</b></li>
+        </ul>
+
+        <h3>입력에 해당하는 것 (Input / Instance)</h3>
+        <ul>
+            <li><b>대상</b>: 하나의 파파야</li>
+            <li>→ 수학적으로는 하나의 <b>instance \(x\)</b></li>
+            <li>→ 전체 가능한 파파야들의 집합이 <b>입력 공간 \(\mathcal X\)</b></li>
+        </ul>
+
+        <h3>특징에 해당하는 것 (Feature)</h3>
+        <ul>
+            <li>관찰 가능한 정보만 사용</li>
+            <li>
+            색깔(color), 부드러움(softness)
+            → <b>feature</b>
+            </li>
+            <li>
+            파파야 하나는
+            \(x=(\text{color},\text{softness})\) 로 표현됨
+            </li>
+        </ul>
+
+        <h3>출력에 해당하는 것 (Label)</h3>
+        <ul>
+            <li>예측하고 싶은 것: 맛있음 / 맛없음</li>
+            <li>→ 이진 값</li>
+            <li>
+            \[
+                \mathcal Y=\{0,1\}
+            \]
+            </li>
+            <li>이 값이 바로 <b>label \(y\)</b></li>
+        </ul>
+
+        <h3>정답 규칙에 해당하는 것 (Target Function)</h3>
+        <ul>
+            <li>실제로 세상이 정답을 만드는 규칙이 존재한다고 가정</li>
+            <li>파파야의 진짜 맛을 결정하는 미지의 규칙</li>
+            <li>
+            → 수학적으로는
+            <b>정답 함수 \(f:\mathcal X\to\mathcal Y\)</b>
+            </li>
+            <li>우리는 \(f\)를 직접 볼 수 없다</li>
+        </ul>
+
+        <h3>데이터에 해당하는 것 (Training Data)</h3>
+        <ul>
+            <li>파파야를 여러 개 관찰</li>
+            <li>각각에 대해 (특징, 정답)을 기록</li>
+            <li>
+            \[
+                (x_1,y_1),\dots,(x_m,y_m)
+            \]
+            </li>
+            <li>이 전체가 <b>훈련 데이터 \(S\)</b></li>
+        </ul>
+
+        <h3>학습의 목표</h3>
+        <ul>
+            <li>새로운 파파야가 왔을 때</li>
+            <li>그 맛을 최대한 정확히 맞추는 규칙을 만드는 것</li>
+            <li>
+            → \(x \mapsto y\) 형태의 함수
+            <b>\(h:\mathcal X\to\mathcal Y\)</b>
+            </li>
+        </ul>
+
+        <h3>이 예제가 왜 중요한가</h3>
+        <table>
+            <tr><th>파파야 예제</th><th>학습 이론 개념</th></tr>
+            <tr><td>파파야 하나</td><td>instance \(x\)</td></tr>
+            <tr><td>색, 부드러움</td><td>feature</td></tr>
+            <tr><td>맛있음 / 맛없음</td><td>label \(y\)</td></tr>
+            <tr><td>진짜 맛 규칙</td><td>정답 함수 \(f\)</td></tr>
+            <tr><td>관찰 기록</td><td>훈련 데이터 \(S\)</td></tr>
+            <tr><td>예측 규칙</td><td>가설 / 분류기 \(h\)</td></tr>
+        </table>
+
+        </div>
+    </details>
+    </section>
+
+
+  <section>
+    <details>
+      <summary><h2>2.1 A Formal Model — 통계적 학습 프레임워크</h2></summary>
+      <div class="content">
+        <p class="muted">이제 직관을 수학으로 바꾼다.</p>
+
+        <h3>(1) Learner의 입력</h3>
+
+        <h4>① Domain set (입력 공간)</h4>
+        <div class="formula">$$\mathcal{X}$$</div>
+        <ul>
+          <li>라벨을 붙이고 싶은 대상들의 집합</li>
+          <li>파파야 예제: \(\mathcal{X}\) = 모든 가능한 파파야</li>
+          <li>보통 각 \(x\in\mathcal{X}\)는 feature 벡터 (예: \(x=(\text{color},\text{softness})\))</li>
+          <li><span class="chip">x</span> instance, <span class="chip">\(\mathcal X\)</span> instance space</li>
+        </ul>
+
+        <h4>② Label set (출력 공간)</h4>
+        <div class="formula">$$\mathcal{Y}=\{0,1\}\quad(\text{또는 } \{-1,+1\})$$</div>
+        <ul>
+          <li>이 장에서는 이진 분류만 다룸</li>
+          <li>파파야 예제: 1=맛있음, 0=맛없음</li>
+        </ul>
+
+        <h4>③ Training data (훈련 데이터)</h4>
+        <div class="formula">
+          $$S=((x_1,y_1),\ldots,(x_m,y_m))\in(\mathcal{X}\times\mathcal{Y})^m$$
+        </div>
+        <ul>
+          <li>샘플 수는 유한: \(m\)</li>
+          <li>\(S\)는 “집합처럼” 쓰지만 실제로는 <b>순서 있는 시퀀스</b></li>
+          <li>중복 가능</li>
+        </ul>
+
+        <h3>(2) Learner의 출력</h3>
+
+        <h4>예측 함수 (hypothesis / classifier)</h4>
+        <div class="formula">$$h:\mathcal{X}\to\mathcal{Y}$$</div>
+        <ul>
+          <li>입력 \(x\) -> 예측 라벨 \(h(x)\)</li>
+          <li>predictor / hypothesis / classifier 동일 의미</li>
+        </ul>
+
+        <h4>학습 알고리즘 표기</h4>
+        <div class="formula">$$A(S)=h$$</div>
+        <p class="muted">-> 데이터를 넣으면 규칙(함수) 하나가 나온다.</p>
+
+        <h3>(3) 데이터 생성 모델 (가장 중요)</h3>
+
+        <h4>① 입력 분포</h4>
+        <div class="formula">$$\mathcal{D}:\ \text{distribution over }\mathcal{X}$$</div>
+        <div class="warn">학습자는 \(\mathcal D\)를 전혀 모른다. 어떤 분포든 가능.</div>
+
+        <h4>② 정답 함수 (labeling function)</h4>
+        <div class="formula">$$f:\mathcal{X}\to\mathcal{Y}$$</div>
+        <ul>
+          <li>\(f\)는 “진짜 정답” 규칙</li>
+          <li>학습자는 \(f\)를 모른다</li>
+        </ul>
+
+        <h4>③ 노이즈 없는 가정 (이 장에서만)</h4>
+        <div class="formula">$$y_i=f(x_i)$$</div>
+
+        <h4>데이터 생성 과정 요약</h4>
+        <div class="formula">$$x_i\sim\mathcal D,\qquad y_i=f(x_i)$$</div>
+
+        <h3>(4) 성공의 척도 — Error (핵심 정의)</h3>
+        <div class="quote">새로 뽑은 데이터에서 틀릴 확률</div>
+        <div class="formula">
+          $$L_{\mathcal{D},f}(h)
+          :=
+          \mathbb{P}_{x\sim\mathcal{D}}\big[h(x)\neq f(x)\big]
+          \qquad (2.1)$$
+        </div>
+        <ul>
+          <li>\(\mathcal D\): 세상이 데이터를 내는 방식</li>
+          <li>\(f(x)\): 진짜 라벨</li>
+          <li>\(h(x)\): 예측 라벨</li>
+          <li>둘이 다를 확률 = true error / generalization error / risk</li>
+        </ul>
+
+        <h4>동치 표현</h4>
+        <div class="formula">
+          $$L_{\mathcal{D},f}(h)=\mathcal{D}\big(\{x: h(x)\neq f(x)\}\big)$$
+        </div>
+
+        <h3>(5) 학습자가 모르는 것</h3>
+        <ul>
+          <li>\(\mathcal D\) (분포)</li>
+          <li>\(f\) (정답 함수)</li>
+        </ul>
+        <p class="muted">-> 학습자가 볼 수 있는 것은 오직 훈련 데이터 \(S\)</p>
+
+        <h3>구조 요약</h3>
+        <table>
+          <tr><th>요소</th><th>기호</th><th>의미</th></tr>
+          <tr><td>입력 공간</td><td>\(\mathcal X\)</td><td>데이터</td></tr>
+          <tr><td>출력 공간</td><td>\(\mathcal Y\)</td><td>라벨</td></tr>
+          <tr><td>분포</td><td>\(\mathcal D\)</td><td>세상</td></tr>
+          <tr><td>정답</td><td>\(f\)</td><td>진리</td></tr>
+          <tr><td>데이터</td><td>\(S\)</td><td>관측</td></tr>
+          <tr><td>예측기</td><td>\(h\)</td><td>학습 결과</td></tr>
+          <tr><td>목표</td><td>\(L_{\mathcal D,f}(h)\downarrow\)</td><td>진짜 오차 최소화</td></tr>
+        </table>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2.2 Empirical Risk Minimization (ERM)</h2></summary>
+      <div class="content">
+        <h3>1) 진짜로 하고 싶은 것 (하지만 못 함)</h3>
+        <div class="formula">
+          $$\min_h\ L_{\mathcal D,f}(h)
+          =\min_h\ \mathbb P_{x\sim\mathcal D}[h(x)\neq f(x)]$$
+        </div>
+        <ul>
+          <li>미래에서 틀릴 확률 최소화</li>
+          <li>하지만 \(\mathcal D\)도 \(f\)도 몰라서 직접 계산 불가</li>
+        </ul>
+
+        <h3>2) 대신 쓰는 것: Training error (식 2.2)</h3>
+        <div class="formula">
+          $$L_S(h):=\frac{|\{i\in[m]: h(x_i)\neq y_i\}|}{m}$$
+        </div>
+        <ul>
+          <li>훈련 데이터에서의 오답률</li>
+          <li>training error = empirical error = empirical risk</li>
+        </ul>
+
+        <h3>3) ERM 규칙</h3>
+        <div class="quote">
+          “우리가 가진 정보는 훈련 데이터뿐이니까, 거기서 제일 잘 맞는 모델을 고르자.”
+        </div>
+        <div class="formula">$$\hat h\in\arg\min_h L_S(h)$$</div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2.2.1 Something May Go Wrong — Overfitting</h2></summary>
+      <div class="content">
+        <h3>반례 세팅</h3>
+        <ul>
+          <li>입력 공간: 회색 정사각형</li>
+          <li>분포 \(\mathcal D\): 회색 정사각형 안 균등분포</li>
+          <li>정답 함수 \(f\): 파란 정사각형 안이면 1, 바깥이면 0</li>
+          <li>면적: 회색=2, 파란=1 -> 최적 true error는 0 가능</li>
+        </ul>
+
+        <h3>“사기급” 예측기 (식 2.3)</h3>
+        <div class="formula">
+          $$h_S(x)=
+          \begin{cases}
+          y_i & \text{if }\exists i\in[m]\text{ s.t. }x=x_i\\
+          0 & \text{otherwise}
+          \end{cases}$$
+        </div>
+        <p class="muted">-> 훈련 점은 외우고, 나머지는 전부 0</p>
+
+        <h3>훈련 오차</h3>
+        <div class="formula">$$L_S(h_S)=0$$</div>
+
+        <h3>진짜 오차</h3>
+        <ul>
+          <li>\(h_S\)가 1을 내는 곳은 유한한 점 -> 연속 분포에서 확률 0</li>
+          <li>결국 파란 영역(진짜 1) 전체를 거의 다 틀림</li>
+        </ul>
+        <div class="formula">$$L_{\mathcal D,f}(h_S)=\frac12$$</div>
+
+        <table>
+          <tr><th>항목</th><th>값</th></tr>
+          <tr><td>훈련 오차</td><td class="good">0</td></tr>
+          <tr><td>진짜 오차</td><td class="bad">1/2</td></tr>
+        </table>
+
+        <div class="quote">
+          ERM은 원칙이지, 학습이 가능하다는 보장이 아니다.<br/>
+          훈련 오차 ↓ -> 진짜 오차 ↓ 는 항상 성립하지 않는다.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2.3 ERM with Inductive Bias</h2></summary>
+      <div class="content">
+        <div class="quote">
+          “ERM은 버릴 게 아니라, ‘고를 수 있는 모델의 범위’를 미리 제한해서 써야 한다.”
+        </div>
+
+        <h3>왜 필요한가</h3>
+        <ul>
+          <li>제한 없는 ERM은 암기 모델이 항상 이김 -> 과적합</li>
+          <li>해결: <b>검색 공간을 제한</b>한 ERM</li>
+        </ul>
+
+        <h3>Hypothesis class \(\mathcal H\)</h3>
+        <div class="formula">
+          $$\mathcal H \subset \{\,h:\mathcal X\to\mathcal Y\,\}$$
+        </div>
+        <ul>
+          <li>\(\mathcal H\)는 <b>데이터 보기 전에</b> 정해야 함</li>
+          <li>데이터 보고 정하면 다시 암기 가능</li>
+        </ul>
+
+        <h3>제한된 ERM</h3>
+        <div class="formula">
+          $$\mathrm{ERM}_{\mathcal H}(S)\in\arg\min_{h\in\mathcal H}L_S(h)$$
+        </div>
+
+        <h3>왜 bias인가</h3>
+        <ul>
+          <li>\(\mathcal H\)를 제한하면 특정 형태의 모델로 “편향”됨</li>
+          <li>이 사전 가정을 <b>inductive bias</b>라 부름</li>
+        </ul>
+
+        <h3>파파야 예제로 연결</h3>
+        <ul>
+          <li>예: <b>axis-aligned rectangles</b>만 허용</li>
+          <li>맛있음 영역이 연속적일 것이라는 합리적 사전 지식 반영</li>
+        </ul>
+
+        <h3>트레이드오프</h3>
+        <ul>
+          <li>\(\mathcal H\)를 좁히면 과적합 위험 ↓</li>
+          <li>너무 좁히면 진짜 \(f\)가 \(\mathcal H\)에 없을 수도 있음</li>
+          <li>-> Bias–Variance tradeoff의 출발점</li>
+        </ul>
+
+        <h3>이 절의 핵심 질문</h3>
+        <div class="quote">
+          어떤 \(\mathcal H\)에 대해 ERM은 일반화를 보장받는가? (-> VC dimension)
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2.3.1 Finite Hypothesis Classes — 확률 보장 (핵심 증명 흐름)</h2></summary>
+      <div class="content">
+        <div class="quote">
+          핵심: “나쁜 가설이 훈련에서 0오차처럼 보일 확률은 \((1-\varepsilon)^m\)로 지수적으로 작아지고,<br/>
+          나쁜 가설이 여러 개여도 union bound로 합치면 된다.”
+        </div>
+
+        <div class="step">
+          <h3>Step 1. ERM\(_{\mathcal H}\) 정의 (2.4)</h3>
+          <div class="formula">
+            $$h_S\in\arg\min_{h\in\mathcal H}L_S(h)\qquad(2.4)$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 2. Realizability 가정 (Definition 2.1)</h3>
+          <div class="formula">
+            $$\exists h^*\in\mathcal H\ \text{s.t.}\ L_{\mathcal D,f}(h^*)=0$$
+          </div>
+          <p class="muted">
+            따라서 어떤 샘플 \(S\)에서도 \(L_S(h^*)=0\), 그리고 ERM이 고른 \(h_S\)도 \(L_S(h_S)=0\).
+          </p>
+          <div class="formula">$$L_S(h_S)=0$$</div>
+        </div>
+
+        <div class="step">
+          <h3>Step 3. 실패 사건과 나쁜 가설 집합</h3>
+          <p>실패 사건:</p>
+          <div class="formula">$$L_{\mathcal D,f}(h_S)>\varepsilon$$</div>
+          <p>나쁜 가설 집합:</p>
+          <div class="formula">
+            $$\mathcal H_B=\{h\in\mathcal H: L_{\mathcal D,f}(h)>\varepsilon\}$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 4. Misleading samples \(M\)과 포함관계 (2.5), (2.6)</h3>
+          <div class="formula">
+            $$M=\{S:\exists h\in\mathcal H_B\ \text{s.t.}\ L_S(h)=0\}$$
+          </div>
+          <p class="muted">
+            실패하려면 “나쁜 가설이 훈련에서는 완벽(0오차)처럼 보이는 샘플”이 필요.
+            따라서 실패사건은 \(M\)에 포함되고,
+          </p>
+          <div class="formula">
+            $$\Pr_{S\sim\mathcal D^m}[L_{\mathcal D,f}(h_S)>\varepsilon]\le \Pr_{S\sim\mathcal D^m}[M]\qquad(2.6)$$
+          </div>
+
+          <div class="formula">
+            $$M=\bigcup_{h\in\mathcal H_B}\{S:L_S(h)=0\}\qquad(2.5)$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 5. Union Bound (2.7)</h3>
+          <div class="formula">
+            $$\Pr(M)\le \sum_{h\in\mathcal H_B}\Pr(L_S(h)=0)\qquad(2.7)$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 6. i.i.d.로 곱 분해 + 지수 감소 (2.8), (2.9)</h3>
+          <p class="muted">
+            샘플이 i.i.d.이므로 “모든 \(i\)에서 맞는다” 확률이 곱으로 분해된다:
+          </p>
+          <div class="formula">
+            $$\Pr(L_S(h)=0)=\Pr(\forall i,\ h(x_i)=f(x_i))
+            =\prod_{i=1}^m \Pr_{x\sim\mathcal D}[h(x)=f(x)]
+            =\big(1-L_{\mathcal D,f}(h)\big)^m\qquad(2.8)$$
+          </div>
+
+          <p class="muted">
+            나쁜 가설이면 \(L_{\mathcal D,f}(h)>\varepsilon\Rightarrow 1-L_{\mathcal D,f}(h)<1-\varepsilon\).
+          </p>
+          <div class="formula">
+            $$\Pr(L_S(h)=0)\le (1-\varepsilon)^m\le e^{-\varepsilon m}\qquad(2.9)$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 7. 결합 -> 실패확률 상계</h3>
+          <div class="formula">
+            $$\Pr[L_{\mathcal D,f}(h_S)>\varepsilon]
+            \le \sum_{h\in\mathcal H_B}e^{-\varepsilon m}
+            =|\mathcal H_B|e^{-\varepsilon m}
+            \le |\mathcal H|e^{-\varepsilon m}$$
+          </div>
+        </div>
+
+        <div class="step">
+          <h3>Step 8. 샘플 수 조건 (Sample Complexity)</h3>
+          <div class="formula">
+            $$|\mathcal H|e^{-\varepsilon m}\le \delta
+            \ \Rightarrow\
+            m\ge \frac{\log(|\mathcal H|/\delta)}{\varepsilon}$$
+          </div>
+          <ul>
+            <li>\(|\mathcal H|\) ↑ -> 더 많은 데이터 필요 (로그)</li>
+            <li>\(\varepsilon\) ↓ -> 더 많은 데이터 필요 (1/ε)</li>
+            <li>\(\delta\) ↓ -> 더 많은 데이터 필요 (로그)</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="summary-box">
+    <details>
+      <summary><h2>최종 요약</h2></summary>
+      <div class="content">
+        <ul>
+          <li>학습의 목표는 \(L_{\mathcal D,f}(h)\) (미래 오차) 최소화</li>
+          <li>하지만 \(\mathcal D, f\)를 몰라서 직접 최소화 불가 -> \(L_S(h)\) (훈련 오차)로 대체</li>
+          <li>제한 없는 ERM은 과적합 가능 -> <b>inductive bias</b>로 \(\mathcal H\) 제한</li>
+          <li>\(|\mathcal H|<\infty\)이면, \(m\ge \frac{\log(|\mathcal H|/\delta)}{\varepsilon}\)일 때
+            확률 \(\ge 1-\delta\)로 \(L_{\mathcal D,f}(h_S)\le \varepsilon\)</li>
+        </ul>
+      </div>
+    </details>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes — Chapter 2
+  </div>
+
+</div>
+</body>
+</html>

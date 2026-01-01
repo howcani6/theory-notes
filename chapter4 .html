@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Theory — Chapter 4: Uniform Convergence</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow: hidden;
+    }
+    details { width: 100%; }
+    summary {
+      list-style: none; padding: 22px 28px; cursor: pointer;
+      outline: none; transition: background 0.2s ease;
+    }
+    summary:hover { background: #f1f5f9; }
+    summary::-webkit-details-marker { display: none; }
+
+    h2{
+      display: flex; justify-content: space-between; align-items: center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.4rem;
+    }
+    h2::after { content: '->'; font-size: 1.1rem; transition: transform 0.3s ease; color: var(--muted); }
+    details[open] h2::after { transform: rotate(90deg); }
+
+    .content { padding: 0 30px 30px 30px; }
+    h3{color:var(--secondary); margin:24px 0 10px; font-size:1.15rem; border-bottom:1px solid var(--border); padding-bottom:5px;}
+    h4{margin:18px 0 8px; font-size:1rem; color:#0f172a; font-weight:700;}
+    
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:15px; border-radius:10px;
+      margin:15px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation { 
+      background: #f8fafc; padding: 15px; border-radius: 10px; 
+      border: 1px dashed var(--secondary); margin: 15px 0; 
+    }
+    .interpretation b { color: var(--secondary); }
+
+    .step-box { border-left: 3px solid var(--accent); background: #fffcf5; padding: 15px; margin: 10px 0; border-radius: 0 10px 10px 0; }
+    .footer{ text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Chapter 4: Uniform Convergence</h1>
+    <p>훈련 오차가 진짜 오차를 대표할 때, 학습은 성공한다</p>
+  </header>
+
+  <section>
+    <details open>
+      <summary><h2>4.1 Uniform Convergence (학습 가능성의 충분조건)</h2></summary>
+      <div class="content">
+        <p class="quote">“훈련셋 \(S\)가 모든 가설에 대해 진짜 성능을 잘 근사한다면, ERM은 진짜로도 거의 최적 성능을 낸다.”</p>
+        
+        <h3>1) 기초 기호 정리</h3>
+        <ul>
+          <li>\(Z\): 데이터 공간 (분류 시 \(z=(x,y)\)).</li>
+          <li>\(D\): 데이터가 생성되는 진짜 세상의 확률 법칙.</li>
+          <li>\(L_D(h) = \mathbb{E}_{z\sim D}[\ell(h,z)]\): 진짜 위험(True Risk).</li>
+          <li>\(L_S(h) = \frac{1}{m}\sum \ell(h,z_i)\): 훈련 데이터 위험(Empirical Risk).</li>
+        </ul>
+
+        <h3>2) Definition 4.1: \(\epsilon\)-representative sample</h3>
+        <p>훈련셋 \(S\)가 모든 가설 \(h \in \mathcal{H}\)에 대해 다음을 만족할 때:</p>
+        <div class="formula">$$|L_S(h) - L_D(h)| \le \epsilon$$</div>
+        <div class="interpretation">
+          <b>핵심:</b> 특정 \(h\) 하나가 아니라, 가설 집합 내의 <b>모든 \(h\)에 대해 동시에</b> 성립해야 한다. 이것이 "Uniform(균일)" 개념의 시작이다.
+        </div>
+
+        <h3>3) Lemma 4.2: 대표적 샘플과 ERM의 성공</h3>
+        <p>만약 \(S\)가 \(\epsilon/2\)-representative 하다면, ERM이 고른 \(h_S\)는 다음을 보장한다:</p>
+        <div class="formula">$$L_D(h_S) \le \min_{h \in \mathcal{H}} L_D(h) + \epsilon$$</div>
+
+        <h4>[증명해석: 3단 점프 로직]</h4>
+        <p>증명의 핵심은 \(\epsilon/2\)를 두 번 활용하여 \(\epsilon\) 오차를 만드는 것이다.</p>
+        <div class="step-box">
+          <b>Step A (대표성 적용):</b> \(L_D(h_S) \le L_S(h_S) + \epsilon/2\)<br/>
+          (해석: \(h_S\)의 진짜 오차는 훈련 오차보다 최대 \(\epsilon/2\) 만큼만 더 나쁠 수 있다.)
+        </div>
+        <div class="step-box">
+          <b>Step B (ERM의 정의):</b> \(L_S(h_S) \le L_S(h)\)<br/>
+          (해석: \(h_S\)는 훈련에서 1등이므로 어떤 다른 \(h\)보다 훈련 오차가 작다.)
+        </div>
+        <div class="step-box">
+          <b>Step C (임의의 \(h\)에 대표성 적용):</b> \(L_S(h) \le L_D(h) + \epsilon/2\)<br/>
+          (해석: 비교 대상인 \(h\)의 훈련 오차 역시 진짜 오차보다 \(\epsilon/2\) 이상 크게 튀지 않는다.)
+        </div>
+        <div class="interpretation">
+          <b>결합:</b> \(L_D(h_S) \xrightarrow{A} L_S(h_S) + \epsilon/2 \xrightarrow{B} L_S(h) + \epsilon/2 \xrightarrow{C} L_D(h) + \epsilon/2 + \epsilon/2 = L_D(h) + \epsilon\).
+        </div>
+
+        <h3>4) Definition 4.3 & Corollary 4.4</h3>
+        <p><b>Uniform Convergence:</b> 표본 수 \(m\)이 충분히 크면, 표본 \(S\)가 높은 확률(\(1-\delta\))로 \(\epsilon\)-representative가 된다는 성질.</p>
+        <p><b>결론:</b> \(\mathcal{H}\)가 Uniform Convergence 성질을 가지면, Agnostic PAC 학습이 가능하다.</p>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>4.2 Finite Classes (유한 가설 집합에서의 보장)</h2></summary>
+      <div class="content">
+        <p><b>결론:</b> 가설의 개수가 유한(\(|\mathcal{H}| < \infty\))하면 Uniform Convergence가 보장된다.</p>
+
+        <h3>1) Step 1: Union Bound (합집합 확률)</h3>
+        <p>누군가 한 명이라도 훈련과 진짜 오차가 크게 벌어질(실패할) 확률:</p>
+        <div class="formula">$$\Pr\left(\exists h \in \mathcal{H} : |L_S(h) - L_D(h)| > \epsilon\right) \le \sum_{h \in \mathcal{H}} \Pr\left(|L_S(h) - L_D(h)| > \epsilon\right)$$</div>
+        <div class="interpretation">
+          가설의 개수(\(|\mathcal{H}|\))가 많을수록, "그중 운 좋게 훈련에서만 좋아 보이는 놈"이 나타날 확률이 합산되어 커진다.
+        </div>
+
+        <h3>2) Step 2: Hoeffding 부등식 (농도)</h3>
+        <p>고정된 \(h\) 하나에 대해, 훈련 평균이 기대값에서 멀어질 확률은 지수적으로 감소한다.</p>
+        <div class="formula">$$\Pr\left(|L_S(h) - L_D(h)| > \epsilon\right) \le 2e^{-2m\epsilon^2}$$</div>
+
+        <h3>3) 결합 및 표본 복잡도 유도</h3>
+        <p>실패 확률을 \(\delta\) 이하로 누르기 위해 다음 식을 푼다:</p>
+        <div class="formula">$$2|\mathcal{H}|e^{-2m\epsilon^2} \le \delta \implies m \ge \frac{\log(2|\mathcal{H}|/\delta)}{2\epsilon^2}$$</div>
+
+        <h3>4) Remark 4.1: Discretization Trick</h3>
+        <p>이론적으로는 파라미터가 실수(무한)여도, 실제 컴퓨터(64-bit float)는 유한한 비트로 숫자를 표현하므로 현실의 모든 모델은 "매우 큰 유한 가설 집합"으로 볼 수 있다.</p>
+      </div>
+    </details>
+  </section>
+
+  <section style="background: #f8fafc; border: 1px solid var(--border); padding: 25px; border-radius: 15px; margin: 20px;">
+    <h3 style="margin-top: 0;">💡 개념 확인 (FAQ)</h3>
+    <ul>
+      <li><b>"맞는다"는 의미:</b> 여기서는 훈련 오차(\(L_S\))가 진짜 오차(\(L_D\))를 얼마나 잘 근사(Match)하느냐를 뜻한다.</li>
+      <li><b>"확률이 낮다"는 의미:</b> 표본을 뽑았을 때, 운이 나빠서 대표성이 없는 표본이 뽑힐 확률이 표본 수 \(m\)에 따라 급격히 0에 가까워진다는 뜻이다.</li>
+      <li><b>왜 "실패"하는가:</b> 훈련 데이터에서만 우연히 성능이 좋게 측정된 '나쁜 가설'에 속아 ERM이 그것을 고르기 때문이다. Uniform Convergence는 모든 가설에 대해 이런 '착시'가 일어날 확률을 통제한다.</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes — Chapter 4 Breakdown
+  </div>
+
+</div>
+
+</body>
+</html>
