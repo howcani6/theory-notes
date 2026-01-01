@@ -156,98 +156,100 @@
     </details>
   </section>
 
-    <section>
+  <section>
     <details>
-        <summary><h2>2.0 파파야 예제 (직관적 도입)</h2></summary>
-        <div class="content">
+      <summary><h2>2.0 파파야 예제 (직관적 도입)</h2></summary>
+      <div class="content">
 
-        <h3>문제의 본질</h3>
+        <p class="quote">“우리는 맛있는 파파야를 어떻게 고를 수 있는가?”</p>
+
+        <h3>1) 문제의 본질</h3>
+        <p>어떤 대상을 보고 <b>라벨을 예측</b>하는 것이 핵심이다. 그러나 진짜 정답은 실제로 먹어보기(직접 확인) 전까지는 알 수 없다. <br>이러한 구조를 <b>지도학습(Supervised Learning)</b>이라 한다.</p>
+
+        <h3>2) 구성 요소의 수학적 정의</h3>
+        
+        <h4>(A) 입력 공간과 특징 (Input & Feature)</h4>
         <ul>
-            <li>우리는 어떤 대상을 보고 <b>라벨을 예측</b>해야 한다</li>
-            <li>정답은 실제로 먹어보기 전까지 모른다</li>
-            <li>이 구조 자체가 <b>지도학습(supervised learning)</b></li>
+          <li><b>대상 (Instance)</b>: 관찰 대상이 되는 파파야 하나하나를 의미하며, 기호로는 \(x\)라 표기한다.</li>
+          <li><b>입력 공간 (\(\mathcal{X}\))</b>: 존재하는 모든 가능한 파파야들의 집합이다.</li>
+          <li><b>특징 (Feature)</b>: 눈으로 관찰 가능한 정보이다. (예: 색깔, 부드러움)
+            <div class="formula">\(x = (\text{color, softness})\)</div>
+          </li>
         </ul>
 
-        <h3>입력에 해당하는 것 (Input / Instance)</h3>
+        <h4>(B) 출력 공간 (Label)</h4>
         <ul>
-            <li><b>대상</b>: 하나의 파파야</li>
-            <li>→ 수학적으로는 하나의 <b>instance \(x\)</b></li>
-            <li>→ 전체 가능한 파파야들의 집합이 <b>입력 공간 \(\mathcal X\)</b></li>
+          <li>예측하고자 하는 결과값(맛있음/맛없음)이다. 이진 분류에서는 다음과 같이 정의한다.
+            <div class="formula">$$\mathcal{Y} = \{0, 1\}$$</div>
+          </li>
         </ul>
 
-        <h3>특징에 해당하는 것 (Feature)</h3>
+        <h4>(C) 정답 함수 (Target Function)</h4>
         <ul>
-            <li>관찰 가능한 정보만 사용</li>
-            <li>
-            색깔(color), 부드러움(softness)
-            → <b>feature</b>
-            </li>
-            <li>
-            파파야 하나는
-            \(x=(\text{color},\text{softness})\) 로 표현됨
-            </li>
+          <li>데이터를 생성하는 세상의 숨겨진 규칙이다. 학습자는 이 규칙을 직접 볼 수 없으나, 존재한다고 가정한다.
+            <div class="formula">$$f : \mathcal{X} \to \mathcal{Y}$$</div>
+          </li>
         </ul>
 
-        <h3>출력에 해당하는 것 (Label)</h3>
+        <h4>(D) 훈련 데이터 (Training Data)</h4>
         <ul>
-            <li>예측하고 싶은 것: 맛있음 / 맛없음</li>
-            <li>→ 이진 값</li>
-            <li>
-            \[
-                \mathcal Y=\{0,1\}
-            \]
-            </li>
-            <li>이 값이 바로 <b>label \(y\)</b></li>
+          <li>과거에 경험한 파파야들의 기록이다. 특징과 실제 라벨이 쌍으로 묶여 존재한다.
+            <div class="formula">$$S = \{(x_1, y_1), \dots, (x_m, y_m)\}$$</div>
+          </li>
         </ul>
 
-        <h3>정답 규칙에 해당하는 것 (Target Function)</h3>
-        <ul>
-            <li>실제로 세상이 정답을 만드는 규칙이 존재한다고 가정</li>
-            <li>파파야의 진짜 맛을 결정하는 미지의 규칙</li>
-            <li>
-            → 수학적으로는
-            <b>정답 함수 \(f:\mathcal X\to\mathcal Y\)</b>
-            </li>
-            <li>우리는 \(f\)를 직접 볼 수 없다</li>
-        </ul>
+        
 
-        <h3>데이터에 해당하는 것 (Training Data)</h3>
-        <ul>
-            <li>파파야를 여러 개 관찰</li>
-            <li>각각에 대해 (특징, 정답)을 기록</li>
-            <li>
-            \[
-                (x_1,y_1),\dots,(x_m,y_m)
-            \]
-            </li>
-            <li>이 전체가 <b>훈련 데이터 \(S\)</b></li>
-        </ul>
+        <h3>3) 학습의 목표</h3>
+        <p>훈련 데이터 \(S\)를 바탕으로, 새로운 파파야가 주어졌을 때 그 맛을 정확히 예측하는 <b>가설(Hypothesis) \(h\)</b>를 산출하는 것이다.</p>
+        <div class="formula">$$h : \mathcal{X} \to \mathcal{Y}$$</div>
 
-        <h3>학습의 목표</h3>
-        <ul>
-            <li>새로운 파파야가 왔을 때</li>
-            <li>그 맛을 최대한 정확히 맞추는 규칙을 만드는 것</li>
-            <li>
-            → \(x \mapsto y\) 형태의 함수
-            <b>\(h:\mathcal X\to\mathcal Y\)</b>
-            </li>
-        </ul>
-
-        <h3>이 예제가 왜 중요한가</h3>
+        <br>
+        <h3>4) 개념 대조표</h3>
         <table>
-            <tr><th>파파야 예제</th><th>학습 이론 개념</th></tr>
-            <tr><td>파파야 하나</td><td>instance \(x\)</td></tr>
-            <tr><td>색, 부드러움</td><td>feature</td></tr>
-            <tr><td>맛있음 / 맛없음</td><td>label \(y\)</td></tr>
-            <tr><td>진짜 맛 규칙</td><td>정답 함수 \(f\)</td></tr>
-            <tr><td>관찰 기록</td><td>훈련 데이터 \(S\)</td></tr>
-            <tr><td>예측 규칙</td><td>가설 / 분류기 \(h\)</td></tr>
+          <thead>
+            <tr>
+              <th>파파야 예제</th>
+              <th>학습 이론 개념</th>
+              <th>수학적 기호</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>파파야 하나</td>
+              <td>인스턴스 (Instance)</td>
+              <td>\(x\)</td>
+            </tr>
+            <tr>
+              <td>색상, 부드러움</td>
+              <td>특징 (Feature)</td>
+              <td>\(x \in \mathbb{R}^d\)</td>
+            </tr>
+            <tr>
+              <td>맛있음 / 맛없음</td>
+              <td>라벨 (Label)</td>
+              <td>\(y \in \mathcal{Y}\)</td>
+            </tr>
+            <tr>
+              <td>진짜 맛의 규칙</td>
+              <td>정답 함수 (Target Function)</td>
+              <td>\(f\)</td>
+            </tr>
+            <tr>
+              <td>관찰 기록들</td>
+              <td>훈련 데이터 (Training Set)</td>
+              <td>\(S\)</td>
+            </tr>
+            <tr>
+              <td>최종 예측 규칙</td>
+              <td>가설 (Hypothesis)</td>
+              <td>\(h\)</td>
+            </tr>
+          </tbody>
         </table>
-
-        </div>
+      </div>
     </details>
-    </section>
-
+  </section>
 
   <section>
     <details>
