@@ -1,15 +1,150 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <title>Learning Notes</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Theory — Lecture Notes Index</title>
+
+  <style>
+    :root{
+      --primary:#2563eb; --secondary:#3b82f6; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .container{max-width:800px; margin:0 auto; width: 100%;}
+    
+    header{
+      text-align:center; padding:60px 22px;
+      background:linear-gradient(135deg,#1e3a8a,#2563eb);
+      color:#fff; border-radius:20px; margin-bottom:40px;
+      box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
+    }
+    header h1{margin:0; font-size:2.5rem; letter-spacing: -0.025em;}
+    header p{margin:12px 0 0; opacity:.9; font-size: 1.1rem;}
+
+    .chapter-list {
+      display: grid;
+      gap: 20px;
+    }
+
+    .chapter-card {
+      background: var(--card);
+      padding: 24px 30px;
+      border-radius: 18px;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--secondary);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .chapter-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chapter-number {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .chapter-title {
+      font-size: 1.35rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .arrow-icon {
+      width: 40px;
+      height: 40px;
+      background: #eff6ff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary);
+      transition: background 0.3s ease;
+    }
+
+    .chapter-card:hover .arrow-icon {
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 40px 0 20px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* 반응형 조절 */
+    @media (max-width: 640px) {
+      header h1 { font-size: 1.8rem; }
+      .chapter-title { font-size: 1.15rem; }
+    }
+  </style>
 </head>
 <body>
-  <h1>목차</h1>
-  <ul>
-    <li><a href="chapter2 .html">Chapter 2</a></li>
-    <li><a href="chapter3 .html">Chapter 3</a></li>
-    <li><a href="chapter4 .html">Chapter 4</a></li>
-  </ul>
+
+<div class="container">
+  <header>
+    <h1>Understanding Machine Learning</h1>
+    <p>이론 노트</p>
+  </header>
+
+  <main class="chapter-list">
+    <a href="chapter2 .html" class="chapter-card">
+      <div class="chapter-info">
+        <span class="chapter-number">Chapter 02</span>
+        <span class="chapter-title">A Gentle Start (ERM & Generalization)</span>
+      </div>
+      <div class="arrow-icon">→</div>
+    </a>
+
+    <a href="chapter3 .html" class="chapter-card">
+      <div class="chapter-info">
+        <span class="chapter-number">Chapter 03</span>
+        <span class="chapter-title">PAC Learning & General Model</span>
+      </div>
+      <div class="arrow-icon">→</div>
+    </a>
+
+    <a href="chapter4 .html" class="chapter-card">
+      <div class="chapter-info">
+        <span class="chapter-number">Chapter 04</span>
+        <span class="chapter-title">Uniform Convergence</span>
+      </div>
+      <div class="arrow-icon">→</div>
+    </a>
+  </main>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes Index
+  </div>
+</div>
+
 </body>
 </html>
