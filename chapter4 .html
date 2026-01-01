@@ -88,51 +88,57 @@
   </header>
 
   <section>
-    <details open>
+    <details>
       <summary><h2>4.1 Uniform Convergence (학습 가능성의 충분조건)</h2></summary>
       <div class="content">
-        <p class="quote">“훈련셋 \(S\)가 모든 가설에 대해 진짜 성능을 잘 근사한다면, ERM은 진짜로도 거의 최적 성능을 낸다.”</p>
+        <p class="quote">“훈련 데이터셋 \(S\)가 모든 가설에 대해 진짜 성능을 잘 근사한다면, ERM은 실제 환경에서도 최적에 가까운 성능을 낸다.”</p>
         
         <h3>1) 기초 기호 정리</h3>
         <ul>
-          <li>\(Z\): 데이터 공간 (분류 시 \(z=(x,y)\)).</li>
-          <li>\(D\): 데이터가 생성되는 진짜 세상의 확률 법칙.</li>
-          <li>\(L_D(h) = \mathbb{E}_{z\sim D}[\ell(h,z)]\): 진짜 위험(True Risk).</li>
-          <li>\(L_S(h) = \frac{1}{m}\sum \ell(h,z_i)\): 훈련 데이터 위험(Empirical Risk).</li>
+          <li><b>데이터 공간 (\(Z\))</b>: 입력과 라벨의 쌍 \(z=(x,y)\)을 포함하는 전체 집합이다.</li>
+          <li><b>진짜 분포 (\(D\))</b>: 데이터가 생성되는 실제 세상의 확률 법칙이다.</li>
+          <li><b>진짜 위험 (\(L_D(h)\))</b>: 전체 분포에서 가설 \(h\)가 보이는 기대 손실이다. (\(\mathbb{E}_{z\sim D}[\ell(h,z)]\))</li>
+          <li><b>경험적 위험 (\(L_S(h)\))</b>: 유한한 훈련 데이터 \(S\)에서 계산된 평균 손실이다. (\(\frac{1}{m}\sum \ell(h,z_i)\))</li>
         </ul>
 
         <h3>2) Definition 4.1: \(\epsilon\)-representative sample</h3>
-        <p>훈련셋 \(S\)가 모든 가설 \(h \in \mathcal{H}\)에 대해 다음을 만족할 때:</p>
+        <p>훈련셋 \(S\)가 가설 집합 \(\mathcal{H}\) 내의 <b>모든 가설 \(h\)</b>에 대해 다음 조건을 만족할 때, 이를 \(\epsilon\)-대표 샘플이라 한다.</p>
         <div class="formula">$$|L_S(h) - L_D(h)| \le \epsilon$$</div>
-        <div class="interpretation">
-          <b>핵심:</b> 특정 \(h\) 하나가 아니라, 가설 집합 내의 <b>모든 \(h\)에 대해 동시에</b> 성립해야 한다. 이것이 "Uniform(균일)" 개념의 시작이다.
+        <div class="warn">
+          <b>핵심 개념:</b> 특정 가설 하나가 아니라, 집합 내의 모든 가설에 대해 오차가 균일하게 작아야 한다. 이것이 'Uniform(균일)'의 본질이다.
         </div>
 
         <h3>3) Lemma 4.2: 대표적 샘플과 ERM의 성공</h3>
-        <p>만약 \(S\)가 \(\epsilon/2\)-representative 하다면, ERM이 고른 \(h_S\)는 다음을 보장한다:</p>
+        <p>만약 \(S\)가 \(\epsilon/2\)-대표 샘플이라면, ERM 알고리즘이 선택한 \(h_S\)는 다음 성능을 보장한다.</p>
         <div class="formula">$$L_D(h_S) \le \min_{h \in \mathcal{H}} L_D(h) + \epsilon$$</div>
 
-        <h4>[증명해석: 3단 점프 로직]</h4>
-        <p>증명의 핵심은 \(\epsilon/2\)를 두 번 활용하여 \(\epsilon\) 오차를 만드는 것이다.</p>
-        <div class="step-box">
-          <b>Step A (대표성 적용):</b> \(L_D(h_S) \le L_S(h_S) + \epsilon/2\)<br/>
-          (해석: \(h_S\)의 진짜 오차는 훈련 오차보다 최대 \(\epsilon/2\) 만큼만 더 나쁠 수 있다.)
+        
+
+        <h4>[증명 해석: 3단 논법 로직]</h4>
+        <p>전체 오차 \(\epsilon\)을 \(\epsilon/2\) 두 개로 나누어 방어하는 전략을 취한다.</p>
+        <div class="quote">
+          <b>Step A (학습 결과의 신뢰성):</b> \(L_D(h_S) \le L_S(h_S) + \epsilon/2\)<br/>
+          <small class="muted">→ \(h_S\)의 실제 오차는 훈련 오차보다 최대 \(\epsilon/2\) 만큼만 클 수 있다.</small>
         </div>
-        <div class="step-box">
-          <b>Step B (ERM의 정의):</b> \(L_S(h_S) \le L_S(h)\)<br/>
-          (해석: \(h_S\)는 훈련에서 1등이므로 어떤 다른 \(h\)보다 훈련 오차가 작다.)
+        <div class="quote">
+          <b>Step B (ERM의 최적성):</b> \(L_S(h_S) \le L_S(h)\)<br/>
+          <small class="muted">→ \(h_S\)는 훈련 데이터에서 1등이므로, 다른 어떤 가설 \(h\)보다 훈련 오차가 작거나 같다.</small>
         </div>
-        <div class="step-box">
-          <b>Step C (임의의 \(h\)에 대표성 적용):</b> \(L_S(h) \le L_D(h) + \epsilon/2\)<br/>
-          (해석: 비교 대상인 \(h\)의 훈련 오차 역시 진짜 오차보다 \(\epsilon/2\) 이상 크게 튀지 않는다.)
+        <div class="quote">
+          <b>Step C (비교 대상의 신뢰성):</b> \(L_S(h) \le L_D(h) + \epsilon/2\)<br/>
+          <small class="muted">→ 비교군인 가설 \(h\) 역시 훈련 오차가 실제 오차보다 \(\epsilon/2\) 이상 나쁠 수 없다.</small>
         </div>
-        <div class="interpretation">
-          <b>결합:</b> \(L_D(h_S) \xrightarrow{A} L_S(h_S) + \epsilon/2 \xrightarrow{B} L_S(h) + \epsilon/2 \xrightarrow{C} L_D(h) + \epsilon/2 + \epsilon/2 = L_D(h) + \epsilon\).
+        
+        <p><b>결론 결합:</b></p>
+        <div class="formula">
+          $$L_D(h_S) \stackrel{A}{\le} L_S(h_S) + \frac{\epsilon}{2} \stackrel{B}{\le} L_S(h) + \frac{\epsilon}{2} \stackrel{C}{\le} L_D(h) + \frac{\epsilon}{2} + \frac{\epsilon}{2} = L_D(h) + \epsilon$$
         </div>
 
         <h3>4) Definition 4.3 & Corollary 4.4</h3>
-        <p><b>Uniform Convergence:</b> 표본 수 \(m\)이 충분히 크면, 표본 \(S\)가 높은 확률(\(1-\delta\))로 \(\epsilon\)-representative가 된다는 성질.</p>
-        <p><b>결론:</b> \(\mathcal{H}\)가 Uniform Convergence 성질을 가지면, Agnostic PAC 학습이 가능하다.</p>
+        <p><b>Uniform Convergence (균일 수렴):</b> 표본 수 \(m\)이 증가함에 따라, 표본 \(S\)가 높은 확률(\(1-\delta\))로 \(\epsilon\)-대표 샘플이 되는 성질을 의미한다.</p>
+        <div class="warn">
+          <b>최종 결론:</b> 가설 집합 \(\mathcal{H}\)가 균일 수렴 성질을 만족하면, 해당 모델은 Agnostic PAC 학습이 가능하다.
+        </div>
       </div>
     </details>
   </section>
@@ -165,7 +171,7 @@
   </section>
 
   <section style="background: #f8fafc; border: 1px solid var(--border); padding: 25px; border-radius: 15px; margin: 20px;">
-    <h3 style="margin-top: 0;">💡 개념 확인 (FAQ)</h3>
+    <h3 style="margin-top: 0;"> 개념 확인</h3>
     <ul>
       <li><b>"맞는다"는 의미:</b> 여기서는 훈련 오차(\(L_S\))가 진짜 오차(\(L_D\))를 얼마나 잘 근사(Match)하느냐를 뜻한다.</li>
       <li><b>"확률이 낮다"는 의미:</b> 표본을 뽑았을 때, 운이 나빠서 대표성이 없는 표본이 뽑힐 확률이 표본 수 \(m\)에 따라 급격히 0에 가까워진다는 뜻이다.</li>
