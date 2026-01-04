@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EXP3 — Unbiased Estimator & Variance Control</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a;
+      --secondary:#2563eb;
+      --accent:#f59e0b;
+      --bg:#f8fafc;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --highlight:#eff6ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      line-height:1.7;
+      margin:0;
+      padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+
+    header{
+      text-align:center;
+      padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff;
+      border-radius:20px;
+      margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card);
+      padding:30px;
+      border-radius:15px;
+      margin-bottom:20px;
+      box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border);
+    }
+
+    h2{
+      color:var(--primary);
+      border-left:5px solid var(--secondary);
+      padding-left:14px;
+      margin-top:0;
+      font-size:1.4rem;
+    }
+    h3{
+      color:var(--secondary);
+      margin:26px 0 10px;
+      border-bottom:1px solid var(--border);
+      padding-bottom:6px;
+    }
+
+    .big-picture{
+      background:var(--primary);
+      color:#fff;
+      padding:20px;
+      border-radius:14px;
+      margin-bottom:30px;
+    }
+    .big-picture b{color:#fde68a;}
+
+    .formula{
+      background:#f1f5f9;
+      padding:16px;
+      border-radius:10px;
+      margin:16px 0;
+      border:1px solid var(--border);
+      overflow-x:auto;
+    }
+
+    .logic-box{
+      background:var(--highlight);
+      border:1px solid #bfdbfe;
+      padding:18px;
+      border-radius:12px;
+      margin:15px 0;
+    }
+
+    .warning{
+      color:#b91c1c;
+      font-weight:700;
+    }
+
+    .quote{
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      padding:12px 16px;
+      border-radius:10px;
+      margin:15px 0;
+      font-style:italic;
+    }
+
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin:40px 0;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>EXP3 Bandit Proof</h1>
+  <p>Unbiased Estimator · Importance Weighting · Variance Control</p>
+</header>
+
+<div class="big-picture">
+  <b>목표:</b>  
+  밴딧(EXP3)은 전체 손실 \(y_{t,i}\)를 볼 수 없으므로  
+  <b>unbiased 추정량</b>을 만들어 Hedge(풀정보) 증명의 구조를 유지한다.
+</div>
+
+<section>
+  <h2>1. 밴딧에서 쓰는 핵심 추정량</h2>
+
+  <div class="formula">
+  $$
+  \tilde y_{t,i}
+  :=
+  \frac{y_{t,i}\mathbf 1(A_t=i)}{p_{t,i}}
+  $$
+  </div>
+
+  <ul>
+    <li>관측 가능한 것은 \(A_t, y_{t,A_t}\) 뿐</li>
+    <li>\(i\neq A_t\)이면 0, \(i=A_t\)이면 \(y_{t,A_t}/p_{t,A_t}\)</li>
+  </ul>
+
+  <h3>불편성 (핵심 성질)</h3>
+
+  <div class="formula">
+  $$
+  \mathbb E[\tilde y_{t,i}\mid \mathcal F_{t-1}]
+  =
+  \sum_{a=1}^N p_{t,a}\frac{y_{t,i}\mathbf 1(a=i)}{p_{t,i}}
+  =
+  y_{t,i}
+  $$
+  </div>
+
+  <div class="logic-box">
+    <b>결론:</b>  
+    \(\tilde y_{t,i}\)는 \(y_{t,i}\)의 <b>unbiased estimator</b>.  
+    → 밴딧을 “풀정보 문제처럼” 만드는 첫 단추
+  </div>
+</section>
+
+<section>
+  <h2>2. 선택된 arm 하나의 추정량과 2차모멘트</h2>
+
+  <p>
+    네 노트의
+    \(X=\hat y_{t,A_t}=\frac{y_{t,A_t}}{p_{t,A_t}}\)
+    에 대해
+  </p>
+
+  <div class="formula">
+  $$
+  \mathbb E[X^2\mid\mathcal F_{t-1}]
+  =
+  \sum_{i=1}^N \frac{y_{t,i}^2}{p_{t,i}}
+  \le
+  \sum_{i=1}^N \frac{1}{p_{t,i}}
+  $$
+  </div>
+
+  <p>
+여기서 기준으로 자연스럽게 등장하는 값이
+\(\frac{1}{N}\) 인 이유를 먼저 설명하자.
+</p>
+
+<div class="logic-box">
+  EXP3에서 확률 분포 \(p_t=(p_{t,1},\dots,p_{t,N})\)는
+  <ul>
+    <li>\(N\)개의 arm 위에 정의된 확률분포이고</li>
+    <li>\(\sum_{i=1}^N p_{t,i}=1\) 을 만족한다.</li>
+  </ul>
+
+  따라서 <b>균등 분포</b>일 때의 기준 확률은
+  \[
+  p_{t,i}=\frac{1}{N}
+  \]
+  이다.
+</div>
+
+<p>
+즉, \(\frac{1}{N}\)은
+</p>
+<ul>
+  <li>아무 정보가 없을 때의 “중립적인 확률”이고</li>
+  <li>EXP3에서 확률이 <em>이보다 작아지기 시작하면</em>
+      특정 arm이 거의 선택되지 않는 상태를 의미한다.</li>
+</ul>
+
+<p>
+문제는 importance weighting에서
+\(\tilde y_{t,i}=y_{t,i}\mathbf 1(A_t=i)/p_{t,i}\)
+처럼 <b>확률의 역수</b>가 등장한다는 점이다.
+</p>
+
+<div class="formula">
+$$
+p_{t,i}\ \text{가}\ \frac{1}{N}\ \text{보다 작아질수록}
+\quad
+\frac{1}{p_{t,i}}\ \text{는}\ N\ \text{보다 커진다}.
+$$
+</div>
+
+<p>
+즉, \(\frac{1}{N}\)은
+“역수 \(1/p_{t,i}\)가 \(N\) 규모로 커지기 시작하는
+자연스러운 기준점”이다.
+</p>
+
+<p>
+그래서 EXP3 분석에서는
+$$
+p_{t,i}\approx \frac{1}{N}
+$$
+을 기준으로
+<ul>
+  <li>그보다 작아지면 2차항이 급격히 커질 수 있고</li>
+  <li>그 위험을 막기 위해 이후에
+      <b>\(\gamma/N\) 수준의 강제 탐색</b>을 넣는다.</li>
+</ul>
+</p>
+
+</section>
+
+<section>
+  <h2>3. 왜 탐색 섞기(\(\gamma\))가 필요한가</h2>
+
+  <div class="formula">
+  $$
+  p_{t,i}=(1-\gamma)q_{t,i}+\gamma\frac1N
+  $$
+  </div>
+
+  <div class="formula">
+  $$
+  p_{t,i}\ge \frac{\gamma}{N}
+  \quad\Rightarrow\quad
+  \frac1{p_{t,i}}\le \frac{N}{\gamma}
+  $$
+  </div>
+
+  <div class="logic-box">
+$$
+\text{선택된 arm 하나만 보면}\quad
+\mathbb E[X^2]\;\lesssim\;\frac{N^2}{\gamma}
+\quad\Rightarrow\quad \text{위험}
+$$
+  </div>
+</section>
+
+<section>
+  <h2>4. 표준 EXP3 증명에서 \(N\)만 나오는 이유</h2>
+
+  <p>
+    EXP3는 \(X\)가 아니라 다음 <b>가중 2차합</b>을 사용한다.
+  </p>
+
+  <div class="formula">
+  $$
+  \sum_{i=1}^N p_{t,i}\tilde y_{t,i}^2
+  $$
+  </div>
+
+  <div class="formula">
+  $$
+  \mathbb E\!\left[
+  \sum_i p_{t,i}\tilde y_{t,i}^2
+  \mid\mathcal F_{t-1}
+  \right]
+  =
+  \sum_i y_{t,i}^2
+  \le N
+  $$
+  </div>
+
+  <div class="logic-box">
+    <b>핵심:</b><br/>
+    <ul>
+      <li>선택된 arm 하나의 2차모멘트 ❌</li>
+      <li>가중 평균 2차항의 기대값 ⭕</li>
+    </ul>
+    → 여기서 <b>\(N\)</b>이 깔끔하게 나온다.
+  </div>
+</section>
+
+<section>
+  <h2>5. 최종 Regret Bound로 연결</h2>
+
+  <div class="formula">
+  $$
+  \mathbb E[R_T]
+  \;\lesssim\;
+  \frac{\log N}{\eta}
+  +
+  \eta\cdot T\cdot N
+  $$
+  </div>
+
+  <div class="formula">
+  $$
+  \eta\asymp\sqrt{\frac{\log N}{TN}}
+  \quad\Rightarrow\quad
+  \boxed{
+  \mathbb E[R_T]=O(\sqrt{TN\log N})
+  }
+  $$
+  </div>
+
+  <div class="quote">
+    EXP3는 “분산을 줄이는 알고리즘”이 아니라  
+    <b>분산이 폭발하지 않도록 구조적으로 묶는 알고리즘</b>이다.
+  </div>
+</section>
+
+<div class="footer">
+  &copy; 2026 Bandit Notes
+</div>
+
+</div>
+</body>
+</html>

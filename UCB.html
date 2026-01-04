@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UCB & Time-Uniform Concentration — τₘ Trick Unified Notes</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0; --highlight:#eff6ff;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+
+    header{
+      text-align:center; padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card);
+      border-radius:15px;
+      margin-bottom:20px;
+      box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border);
+      overflow:hidden;
+    }
+
+    details summary{
+      list-style:none;
+      padding:22px 28px;
+      cursor:pointer;
+      transition:background .2s;
+    }
+    details summary:hover{background:#f1f5f9;}
+    details summary::-webkit-details-marker{display:none;}
+
+    h2{
+      color:var(--primary);
+      border-left:5px solid var(--secondary);
+      padding-left:14px;
+      margin:0;
+      font-size:1.4rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    h2::after{
+      content:'▶';
+      color:var(--muted);
+      transition:transform .3s;
+    }
+    details[open] h2::after{transform:rotate(90deg);}
+
+    .content{padding:0 30px 30px 30px;}
+    h3{
+      color:var(--secondary);
+      margin:26px 0 10px;
+      border-bottom:1px solid var(--border);
+      padding-bottom:6px;
+    }
+
+    .big-picture{
+      background:var(--primary);
+      color:#fff;
+      padding:22px;
+      border-radius:14px;
+      margin-bottom:30px;
+    }
+    .big-picture b{color:#fde68a;}
+
+    .formula{
+      background:#f1f5f9;
+      padding:16px;
+      border-radius:10px;
+      margin:16px 0;
+      border:1px solid var(--border);
+      overflow-x:auto;
+    }
+
+    .interpretation{
+      background:#f8fafc;
+      padding:15px;
+      border-radius:10px;
+      border:1px dashed var(--secondary);
+      margin:15px 0;
+    }
+
+    .warning{color:#b91c1c; font-weight:700;}
+    .quote{
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      padding:12px 16px;
+      border-radius:10px;
+      margin:15px 0;
+      font-style:italic;
+    }
+
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin:40px 0;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>UCB</h1>
+  <p>Unbiasedness · Selection Bias · Time-Uniform Concentration · τₘ Trick</p>
+</header>
+
+<div class="big-picture">
+  <b>큰 그림:</b> 밴딧 문제에서는 표본 수가 보상에 따라 <b>적응적으로 결정</b>된다.  
+  따라서 고정 표본 수를 가정하는 표준 Hoeffding 논증은 직접 적용할 수 없으며,  
+  이를 해결하기 위해 <b>τₘ 트릭 + time-uniform concentration</b>이 사용된다.
+</div>
+
+<section>
+<details open>
+<summary><h2>1. 문제의 본질 — 왜 그냥 Hoeffding이 위험해 보이는가</h2></summary>
+<div class="content">
+
+<div class="formula">
+$$
+\hat\mu_i(t)
+=
+\frac{1}{T_i(t)}\sum_{\tau=1}^t r_\tau \mathbf 1(A_\tau=i)
+$$
+</div>
+
+<p class="warning">
+핵심 문제: 분모 \(T_i(t)\)가 <b>랜덤 stopping time</b>이며,
+샘플 수집 시점이 과거 보상에 의존한다.
+</p>
+
+<div class="quote">
+“\(\hat\mu_i(t)\)는 처음 \(T_i(t)\)개의 샘플 평균이 아니라  
+랜덤한 시점들에서 적응적으로 수집된 평균이다.”
+</div>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>2. Hoeffding의 전제와 정확한 충돌 지점</h2></summary>
+<div class="content">
+
+<div class="formula">
+$$
+X_1,\dots,X_m \;\text{i.i.d.}, \quad
+\Pr(|\bar X_m-\mu|>\epsilon)\le 2e^{-2m\epsilon^2}
+$$
+</div>
+
+<ul>
+  <li>\(m\)은 고정</li>
+  <li>평균은 “앞의 \(m\)개 샘플”</li>
+</ul>
+
+<p>
+UCB에서는 이 두 전제가 모두 깨진다.
+그래서 “\(m=T_i(t)\) 대입”은 논리적으로 허용되지 않는다.
+</p>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>3. 해결 키 — m번째 선택 시점 τₘ</h2></summary>
+<div class="content">
+
+<div class="formula">
+$$
+\tau_m := \min\{t : T_i(t)=m\}
+$$
+</div>
+
+<p>
+arm \(i\)에서 얻은 보상들을
+선택 순서대로 \(X_{i,1}, X_{i,2},\dots\)로 재정렬하면
+</p>
+
+<div class="formula">
+$$
+\hat\mu_i(\tau_m)=\frac{1}{m}\sum_{s=1}^m X_{i,s}
+$$
+</div>
+
+<div class="interpretation">
+<b>중요:</b>  
+랜덤한 시간 \(\tau_m\)이지만  
+<b>표본 수 \(m\)은 고정</b> → Hoeffding 정상 적용 가능
+</div>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>4. 모든 m에 대해 동시에 제어 — union bound</h2></summary>
+<div class="content">
+
+<div class="formula">
+$$
+\Pr\Big(
+|\hat\mu_i(\tau_m)-\mu_i|
+\ge
+\sqrt{\frac{2\sigma^2\log(t/\delta)}{m}}
+\Big)
+\le \frac{2\delta}{t}
+$$
+</div>
+
+<p>
+각 \(m\)에 실패 확률을 \(\delta/t\)로 쪼개면
+</p>
+
+<div class="formula">
+$$
+\Pr\Big(
+\exists m\le t :
+|\hat\mu_i(\tau_m)-\mu_i|>\cdots
+\Big)
+\le 2\delta
+$$
+</div>
+
+<div class="interpretation">
+이 과정에서 <b>\(\log t\)</b> 항이 필연적으로 등장한다.
+</div>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>5. 임의의 시간 t로 복귀</h2></summary>
+<div class="content">
+
+<div class="formula">
+$$
+\hat\mu_i(t)=\hat\mu_i(\tau_{T_i(t)})
+$$
+</div>
+
+<p>
+따라서 랜덤한 stopping time에서도
+</p>
+
+<div class="formula">
+$$
+|\hat\mu_i(t)-\mu_i|
+\le
+\sqrt{\frac{2\sigma^2\log(t/\delta)}{T_i(t)}}
+\quad \text{(w.h.p.)}
+$$
+</div>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>6. UCB Regret Proof에서의 철학적 결론</h2></summary>
+<div class="content">
+
+<ul>
+  <li>UCB는 <b>unbiasedness</b>에 의존하지 않는다</li>
+  <li>오직 <b>time-uniform concentration</b>만 사용</li>
+  <li>\(\log T\) regret은 “모든 시간 동시 제어 비용”</li>
+</ul>
+
+<div class="quote">
+UCB 증명의 심장은 기대값이 아니라  
+<b>“항상 무너지지 않는 확률적 상계”</b>다.
+</div>
+
+</div>
+</details>
+</section>
+
+<section>
+<details>
+<summary><h2>보충. 그래서 \(\hat\mu_i(t)\)는 unbiased인가?</h2></summary>
+<div class="content">
+
+<p>
+이 질문은 매우 자연스럽고, 실제로 UCB 증명을 처음 볼 때
+거의 반드시 나오는 의문이다.
+</p>
+
+<h3>1) 고정된 m에서는: YES</h3>
+
+<div class="formula">
+$$
+\hat\mu_i(\tau_m)
+=
+\frac{1}{m}\sum_{s=1}^m X_{i,s}
+$$
+</div>
+
+<div class="formula">
+$$
+\mathbb E[\hat\mu_i(\tau_m)] = \mu_i
+$$
+</div>
+
+<div class="interpretation">
+<b>이유:</b><br/>
+<ul>
+  <li>\(X_{i,s}\)는 i.i.d.</li>
+  <li>표본 수 \(m\)이 고정</li>
+</ul>
+→ 완전히 표준적인 표본평균이므로 <b>unbiased</b>.
+</div>
+
+<h3>2) 랜덤한 t에서는: 일반적으로 NO</h3>
+
+<div class="formula">
+$$
+\hat\mu_i(t)
+=
+\frac{1}{T_i(t)}\sum_{\tau=1}^t r_\tau \mathbf 1(A_\tau=i)
+$$
+</div>
+
+<p class="warning">
+일반적으로
+$$
+\mathbb E[\hat\mu_i(t)] = \mu_i
+$$
+라고 말할 수 없다.
+</p>
+
+<div class="interpretation">
+<b>핵심 이유:</b><br/>
+<ul>
+  <li>\(T_i(t)\)가 stopping time</li>
+  <li>샘플 선택이 과거 보상에 의존 (adaptive)</li>
+  <li>\(\mathbb E[S/T] \neq \mathbb E[S]/\mathbb E[T]\)</li>
+</ul>
+</div>
+
+<h3>3) 그럼 이게 왜 문제가 안 되는가?</h3>
+
+<div class="quote">
+UCB 증명은 애초에  
+“\(\hat\mu_i(t)\)가 unbiased인가?”를  
+<b>증명의 전제로 사용하지 않는다.</b>
+</div>
+
+<p>
+UCB에서 필요한 것은 오직 다음 명제다.
+</p>
+
+<div class="formula">
+$$
+\Pr\Big(
+\forall t,\;
+|\hat\mu_i(t)-\mu_i|
+\le
+\text{confidence radius}(t)
+\Big)
+\ge 1-\delta
+$$
+</div>
+
+<div class="interpretation">
+즉,
+<ul>
+  <li>기댓값의 정확성 ❌</li>
+  <li>고확률 상계의 유지 ⭕</li>
+</ul>
+가 핵심이다.
+</div>
+
+<h3>4) τₘ 트릭의 정확한 역할</h3>
+
+<p>
+τₘ 트릭은
+</p>
+
+<ul>
+  <li>“\(\hat\mu_i(t)\)는 unbiased다”를 증명하려는 장치 ❌</li>
+  <li>
+    <b>
+    “unbiased한 평균들
+    \(\hat\mu_i(\tau_m)\) 전체를 한 번에 묶어
+    랜덤 stopping time에서도 안전한 상계를 만든다”
+    </b> ⭕
+  </li>
+</ul>
+
+<div class="quote">
+UCB는 unbiased estimator 이론이 아니라  
+<b>time-uniform concentration 이론</b>이다.
+</div>
+
+</div>
+</details>
+</section>
+
+<div class="footer">
+  &copy; 2026 Bandit Notes
+</div>
+
+</div>
+</body>
+</html>
