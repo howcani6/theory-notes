@@ -20,16 +20,28 @@
       flex-direction: column;
       min-height: 100vh;
     }
-    .container{max-width:800px; margin:0 auto; width: 100%;}
-    
+    .container{max-width:900px; margin:0 auto; width: 100%;}
+
     header{
       text-align:center; padding:60px 22px;
       background:linear-gradient(135deg,#1e3a8a,#2563eb);
       color:#fff; border-radius:20px; margin-bottom:40px;
       box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
     }
-    header h1{margin:0; font-size:2.5rem; letter-spacing: -0.025em;}
+    header h1{margin:0; font-size:2.5rem;}
     header p{margin:12px 0 0; opacity:.9; font-size: 1.1rem;}
+
+    .section {
+      margin-bottom: 48px;
+    }
+
+    .section-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      padding-left: 14px;
+      border-left: 6px solid var(--primary);
+    }
 
     .chapter-list {
       display: grid;
@@ -46,7 +58,7 @@
       align-items: center;
       justify-content: space-between;
       border: 1px solid var(--border);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: all 0.3s ease;
       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
 
@@ -65,14 +77,12 @@
       font-size: 0.85rem;
       font-weight: 700;
       color: var(--secondary);
-      text-transform: uppercase;
       margin-bottom: 4px;
     }
 
     .chapter-title {
       font-size: 1.35rem;
       font-weight: 600;
-      color: var(--text);
     }
 
     .arrow-icon {
@@ -84,7 +94,6 @@
       align-items: center;
       justify-content: center;
       color: var(--primary);
-      transition: background 0.3s ease;
     }
 
     .chapter-card:hover .arrow-icon {
@@ -99,52 +108,108 @@
       color: var(--muted);
       font-size: 0.9rem;
     }
-
-    /* 반응형 조절 */
-    @media (max-width: 640px) {
-      header h1 { font-size: 1.8rem; }
-      .chapter-title { font-size: 1.15rem; }
-    }
   </style>
 </head>
 <body>
 
 <div class="container">
   <header>
-    <h1>Understanding Machine Learning</h1>
-    <p>이론 노트</p>
+    <h1>Theory Notes</h1>
+    <p>이론 · 증명 · 알고리즘 정리</p>
   </header>
 
-  <main class="chapter-list">
-    <a href="chapter2 .html" class="chapter-card">
-      <div class="chapter-info">
-        <span class="chapter-number">Chapter 02</span>
-        <span class="chapter-title">A Gentle Start (ERM & Generalization)</span>
-      </div>
-      <div class="arrow-icon">→</div>
-    </a>
+  <!-- ===================== -->
+  <!-- Understanding ML -->
+  <!-- ===================== -->
+  <section class="section">
+    <div class="section-title">Understanding Machine Learning</div>
 
-    <a href="chapter3 .html" class="chapter-card">
-      <div class="chapter-info">
-        <span class="chapter-number">Chapter 03</span>
-        <span class="chapter-title">PAC Learning & General Model</span>
-      </div>
-      <div class="arrow-icon">→</div>
-    </a>
+    <div class="chapter-list">
+      <a href="chapter2 .html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 02</span>
+          <span class="chapter-title">A Gentle Start (ERM & Generalization)</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
 
-    <a href="chapter4 .html" class="chapter-card">
-      <div class="chapter-info">
-        <span class="chapter-number">Chapter 04</span>
-        <span class="chapter-title">Uniform Convergence</span>
-      </div>
-      <div class="arrow-icon">→</div>
-    </a>
-  </main>
+      <a href="chapter3 .html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 03</span>
+          <span class="chapter-title">PAC Learning & General Model</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
 
-  <div class="footer">
-    &copy; 2026 Learning Theory Notes Index
-  </div>
-</div>
+      <a href="chapter4 .html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 04</span>
+          <span class="chapter-title">Uniform Convergence</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===================== -->
+  <!-- Bandit Algorithms -->
+  <!-- ===================== -->
+
+  <section class="section">
+    <div class="section-title">Bandit Algorithms</div>
+
+    <div class="chapter-list">
+            <a href="epsilon-greedy Regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 01</span>
+          <span class="chapter-title">ε-Greedy Regret Analysis</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="UCB.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 02</span>
+          <span class="chapter-title">UCB Algorithm</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="UCB regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 03</span>
+          <span class="chapter-title">UCB Regret Analysis</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+      
+      <a href="ADV setting.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 04</span>
+          <span class="chapter-title">Adversarial Bandit Setting</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="full information Regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 05</span>
+          <span class="chapter-title">Full-Information Regret</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="EXP3 REGRET.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 06</span>
+          <span class="chapter-title">EXP3 Regret (Adversarial Bandits)</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+    </div>
+  </section>
+
 
 </body>
 </html>
