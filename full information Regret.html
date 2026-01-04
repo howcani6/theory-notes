@@ -89,18 +89,17 @@
 
   <section>
     <details>
-      <summary><h2>0) 세팅(네 노트의 정의 그대로)</h2></summary>
+      <summary><h2>0) 세팅</h2></summary>
       <div class="content">
 
-        <p>네가 적어둔 건 <b>Hedge / Exponentially Weighted Forecaster(EW)</b>의 고전적인 regret bound</p>
+        <p><b>Hedge / Exponentially Weighted Forecaster(EW)</b>의 고전적인 regret bound</p>
 
         <div class="formula">
           $$R_T=\sum_{t=1}^T \mathbb E[y_{t,A_t}] - \min_j \sum_{t=1}^T y_{t,j}
           \;\;\le\;\; \frac{\eta T}{8}+\frac{\log N}{\eta}$$
         </div>
 
-        <p>을 Hoeffding lemma로 mgf를 잡아서 뽑아내는 증명 흐름이야.<br/>
-        아래는 네 노트 식을 그대로 따라가면서 “왜 그 식이 나오나”를 한 줄씩 붙여서 정리한 내용이야.</p>
+        <p>을 Hoeffding lemma로 mgf를 잡아서 뽑아내는 증명 흐름이야.</p>
 
         <h3>정의</h3>
         <ul>
@@ -135,7 +134,7 @@
 
   <section>
     <details>
-      <summary><h2>1) Hoeffding lemma 적용(네가 적은 핵심 도구)</h2></summary>
+      <summary><h2>1) Hoeffding lemma 적용</h2></summary>
       <div class="content">
 
         <p>Hoeffding lemma(형태)</p>
@@ -145,7 +144,7 @@
           $$\mathbb E\Big[e^{\lambda(Z-\mathbb E Z)}\Big]\le \exp\!\Big(\frac{\lambda^2(b-a)^2}{8}\Big)$$
         </div>
 
-        <p>여기서 네 노트는</p>
+        <p>여기서 </p>
 
         <div class="step-box">
           <div>\((Z:=y_{t,A_t})\)</div>
@@ -194,8 +193,6 @@
           $$\boxed{\mathbb E[y_{t,A_t}]
           \le \frac{\eta}{8} -\frac{1}{\eta}\log \mathbb E[e^{-\eta y_{t,A_t}}]}$$
         </div>
-
-        <p>네 노트의</p>
 
         <div class="formula">
           $$\mathbb E(y_{t,A_t})\le \frac{\eta}{8}-\frac{1}{\eta}\log \mathbb E(e^{-\eta y_{t,A_t}})$$
@@ -268,7 +265,7 @@
           }$$
         </div>
 
-        <p>이게 네 노트의 핵심 줄.</p>
+        <p>이게 핵심 줄.</p>
 
       </div>
     </details>
@@ -315,7 +312,7 @@
           }$$
         </div>
 
-        <p>네 노트의 마지막 텔레스코핑 줄이 이거.</p>
+        <p>마지막 텔레스코핑 줄이 이거.</p>
 
       </div>
     </details>
@@ -323,7 +320,7 @@
 
   <section>
     <details>
-      <summary><h2>6) best expert와 연결(마지막 한 방)</h2></summary>
+      <summary><h2>6) best expert와 연결</h2></summary>
       <div class="content">
 
         <div class="formula">
@@ -414,7 +411,7 @@
           }$$
         </div>
 
-        <p>네 노트 맨 위 결론이 정확히 이거.</p>
+        <p>맨 위 결론이 정확히 이거.</p>
 
         <div class="quote">
           (보너스) \((\eta)\) 최적 선택까지 한 줄로<br/>
@@ -454,4 +451,5 @@
 </div>
 
 </body>
+
 </html>
