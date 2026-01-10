@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL: 기대값 하한 → 확률 하한 (Lemma B.1) + Cor 5.2 + |X|≥km 일반화</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+      --ok:#16a34a; --warn:#f59e0b; --bad:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.75;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:46px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:26px;
+    }
+    header h1{margin:0; font-size:2.05rem; letter-spacing:0.2px;}
+    header p{margin:10px 0 0; opacity:.92;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow:hidden;
+    }
+    details{ width:100%; }
+    summary{
+      list-style:none; padding:22px 28px; cursor:pointer;
+      outline:none; transition: background 0.18s ease;
+    }
+    summary:hover{ background:#f1f5f9; }
+    summary::-webkit-details-marker{ display:none; }
+
+    h2{
+      display:flex; justify-content:space-between; align-items:center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.28rem;
+    }
+    h2::after{
+      content:'->'; font-size:1.05rem; transition: transform .25s ease;
+      color:var(--muted);
+    }
+    details[open] h2::after{ transform: rotate(90deg); }
+
+    .content{ padding:0 30px 30px 30px; }
+    h3{
+      color:var(--secondary); margin:24px 0 10px; font-size:1.12rem;
+      border-bottom:1px solid var(--border); padding-bottom:6px;
+    }
+    h4{
+      margin:18px 0 8px; font-size:1rem; color:#0f172a;
+      font-weight:800;
+    }
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:14px 0;
+      font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:14px 14px; border-radius:10px;
+      margin:14px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation{
+      background:#f8fafc; padding:14px; border-radius:10px;
+      border:1px dashed var(--secondary); margin:14px 0;
+    }
+    .interpretation b{ color:var(--secondary); }
+
+    .step-box{
+      border-left:3px solid var(--accent);
+      background:#fffcf5; padding:14px; margin:12px 0;
+      border-radius:0 10px 10px 0;
+    }
+
+    .pill{
+      display:inline-block; padding:2px 10px; border-radius:999px;
+      font-size:.86rem; font-weight:800; margin-left:8px;
+      background:#e2e8f0; color:#0f172a;
+      vertical-align:middle;
+    }
+    .pill.lemma{ background:#dcfce7; color:#166534; }
+    .pill.bridge{ background:#ffedd5; color:#9a3412; }
+    .pill.cor{ background:#e0e7ff; color:#3730a3; }
+    .pill.gen{ background:#fee2e2; color:#991b1b; }
+
+    ul{ margin:10px 0 10px 22px; }
+    ol{ margin:10px 0 10px 22px; }
+    li{ margin:6px 0; }
+
+    .grid{
+      display:grid; grid-template-columns: 1fr; gap:10px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    .mini{
+      background:#ffffff; border:1px solid var(--border);
+      border-radius:12px; padding:12px 14px;
+    }
+    .mini b{ color:#0f172a; }
+
+    .footer{
+      text-align:center; color:var(--muted); font-size:.9rem; margin:36px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Chapter 5: The Bias-Complexity Tradeoff - Example</h1>
+    <p>기대값 하한 → 확률 하한 (Lemma B.1)</p>
+  </header>
+
+  <!-- Lemma B.1 -->
+  <section>
+    <details open>
+      <summary><h2>Lemma B.1 전체 구조 한눈에 <span class="pill lemma">Lemma B.1</span></h2></summary>
+      <div class="content">
+
+        <h3>가정</h3>
+        <div class="grid">
+          <div class="mini">
+            <b>확률변수</b><br/>
+            \(Z\)
+          </div>
+          <div class="mini">
+            <b>범위</b><br/>
+            \(0 \le Z \le 1\)
+          </div>
+          <div class="mini">
+            <b>평균</b><br/>
+            \(\mathbb E[Z]=\mu\)
+          </div>
+          <div class="mini">
+            <b>목표</b><br/>
+            “큰 값이 나올 확률” 하한
+          </div>
+        </div>
+
+        <h3>1) Lemma의 첫 번째 부등식</h3>
+        <p>임의의 \(a\in(0,1)\)에 대해</p>
+        <div class="formula">
+          $$\boxed{
+          \Pr[Z > 1-a] \;\ge\; \frac{\mu - (1-a)}{a}
+          }$$
+        </div>
+
+        <div class="interpretation">
+          <b>번역</b><br/>
+          평균이 \(\mu\)인 \([0,1]\) 확률변수는,
+          \(1-a\)보다 큰 값이 나올 확률이
+          \(\frac{\mu-(1-a)}{a}\) 이상은 반드시 된다.
+        </div>
+
+        <h3>2) 왜 \(1-a\) 형태가 나오나?</h3>
+        <div class="quote">
+          Markov 부등식은 “0 이상” 확률변수에 바로 적용 가능하다.
+          그래서 \(Z\)를 그대로 쓰지 않고 \(1-Z\)로 바꾼다.
+        </div>
+
+        <h3>3) 핵심 트릭: \(Y = 1 - Z\)</h3>
+        <div class="formula">
+          $$Y := 1 - Z.$$
+        </div>
+        <ul>
+          <li>\(Z\in[0,1]\Rightarrow Y\ge 0\)</li>
+          <li>\(\mathbb E[Y]=1-\mathbb E[Z]=1-\mu\)</li>
+        </ul>
+
+        <h3>4) Markov 부등식 적용</h3>
+        <div class="formula">
+          $$\Pr[Y \ge a] \;\le\; \frac{\mathbb E[Y]}{a}.$$
+        </div>
+        <div class="formula">
+          $$\Pr[Y \ge a]\;\le\;\frac{1-\mu}{a}.$$
+        </div>
+
+        <h3>5) 다시 \(Z\) 사건으로 변환</h3>
+        <div class="formula">
+          $$Y \ge a
+          \;\Longleftrightarrow\;
+          1 - Z \ge a
+          \;\Longleftrightarrow\;
+          Z \le 1 - a.$$
+        </div>
+        <div class="formula">
+          $$\Pr[Z \le 1-a] \;\le\; \frac{1-\mu}{a}.$$
+        </div>
+
+        <h3>6) 반대 사건으로 뒤집기</h3>
+        <div class="formula">
+          $$\Pr[Z > 1-a]
+          =
+          1 - \Pr[Z \le 1-a].$$
+        </div>
+        <div class="formula">
+          $$\Pr[Z > 1-a]
+          \;\ge\;
+          1 - \frac{1-\mu}{a}.$$
+        </div>
+
+        <h3>7) 대수 정리</h3>
+        <div class="formula">
+          $$1 - \frac{1-\mu}{a}
+          =
+          \frac{a - (1-\mu)}{a}
+          =
+          \frac{\mu - (1-a)}{a}.$$
+        </div>
+
+        <div class="formula">
+          $$\boxed{
+          \Pr[Z > 1-a]
+          \;\ge\;
+          \frac{\mu - (1-a)}{a}
+          }$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- Bridge to NFL numbers -->
+  <section>
+    <details>
+      <summary><h2>NFL에서의 사용: \(\mathbb E[\theta]\ge \tfrac14\) → \(\Pr(\theta\ge \tfrac18)\ge \tfrac17\) <span class="pill bridge">Bridge</span></h2></summary>
+      <div class="content">
+
+        <h3>대입할 변수</h3>
+        <div class="formula">
+          $$\theta := L_D(A(S)),\qquad 0\le \theta \le 1.$$
+        </div>
+        <div class="formula">
+          $$\mathbb E[\theta]\ge \frac14.$$
+        </div>
+
+        <h3>Lemma B.1의 형태를 \(\Pr(\theta\ge b)\) 꼴로 쓰기</h3>
+        <p>\(\theta\ge b\)를 Lemma의 \(Z>1-a\)와 맞추려면 \(b=1-a\), 즉 \(a=1-b\)로 둔다.</p>
+        <div class="formula">
+          $$\Pr(\theta \ge b) = \Pr(\theta > 1-a),\quad a=1-b.$$
+        </div>
+
+        <p>Lemma B.1에 \(\mu=\mathbb E[\theta]\), \(a=1-b\)를 넣으면</p>
+        <div class="formula">
+          $$\Pr(\theta \ge b)\ \ge\ \frac{\mu - b}{1-b}.$$
+        </div>
+
+        <h3>숫자 대입: \(\mu\ge \tfrac14\), \(b=\tfrac18\)</h3>
+        <div class="formula">
+          $$\Pr\!\left(\theta\ge \frac18\right)
+          \ \ge\ 
+          \frac{\frac14-\frac18}{1-\frac18}
+          \ =\ 
+          \frac{\frac18}{\frac78}
+          \ =\ 
+          \frac17.$$
+        </div>
+
+        <div class="interpretation">
+          <b>요지</b><br/>
+          “기대값으로 나쁘다”(\(\mathbb E[\theta]\ge 1/4\))를
+          “꽤 자주 나쁘다”(\(\Pr(\theta\ge 1/8)\ge 1/7\))로 바꾸는 다리.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- Corollary 5.2 -->
+  <section>
+    <details>
+      <summary><h2>Corollary 5.2: “모든 함수 허용”이면 PAC 불가능 <span class="pill cor">Cor 5.2</span></h2></summary>
+      <div class="content">
+
+        <h3>가설공간(사전지식 0)</h3>
+        <div class="formula">
+          $$\mathcal H=\{f:\mathcal X\to\{0,1\}\}.$$
+        </div>
+        <p>\(|\mathcal X|=\infty\)라고 하자.</p>
+
+        <h3>PAC 가정과 NFL의 충돌</h3>
+        <ul>
+          <li>PAC라면: 임의 \(\varepsilon,\delta\)에 대해 어떤 표본수 \(m(\varepsilon,\delta)\)가 존재해서 모든 분포에서 성공해야 한다.</li>
+          <li>하지만 \(|\mathcal X|=\infty\)이면: 그 \(m\)에 대해 NFL 구성(\(|C|=2m\))이 가능하다.</li>
+          <li>\(\varepsilon<\tfrac18,\ \delta<\tfrac17\)로 잡으면, NFL이 보장하는 실패확률 하한과 모순이 난다.</li>
+        </ul>
+
+        <div class="formula">
+          $$\boxed{\mathcal H\ \text{는 PAC learnable이 아니다.}}$$
+        </div>
+
+        <div class="interpretation">
+          <b>메시지</b><br/>
+          사전지식(=가설공간 제한)이 없으면 PAC 학습은 불가능.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- Generalization |X| >= k m -->
+  <section>
+    <details>
+      <summary><h2>\(|\mathcal X|\ge km\) 일반화 하한: \(\mathbb E[L]\ge \frac12-\frac{1}{2k}\) <span class="pill gen">Generalization</span></h2></summary>
+      <div class="content">
+
+        <h3>세팅</h3>
+        <ul>
+          <li>\(|\mathcal X|\ge km\)인 큰 입력공간에서, 표본 \(m\)개로는 “안 본 입력”이 많이 남는다.</li>
+          <li>특히 \(C\subset \mathcal X\)를 \(|C|=km\)으로 잡으면, 관측된 서로 다른 입력 수는 최대 \(m\).</li>
+        </ul>
+
+        <h3>안 본 입력 개수</h3>
+        <div class="formula">
+          $$|C\setminus\{x_1,\dots,x_m\}|
+          \ \ge\
+          km - m
+          \ =\
+          (k-1)m.$$
+        </div>
+
+        <h3>각 안 본 입력에서 평균 오답률은 \(\tfrac12\)</h3>
+        <div class="quote">
+          (페어링 논리 그대로) 안 본 점에서는 두 정답 라벨링이 훈련셋을 동일하게 만들고,
+          알고리즘 출력은 같아야 하므로, 둘 중 하나에는 반드시 틀린다 → 평균 \(\tfrac12\).
+        </div>
+
+        <h3>기대 리스크 하한 계산</h3>
+        <p>\(D\)가 \(C\) 위에서 균등이라고 하면, 전체 리스크는 “안 본 입력 비율 × \(\tfrac12\)”로 하한이 잡힌다.</p>
+
+        <div class="formula">
+          $$\mathbb E[L]
+          \ \ge\
+          \frac{(k-1)m}{km}\cdot\frac12
+          \ =\
+          \frac{k-1}{2k}
+          \ =\
+          \frac12-\frac{1}{2k}.$$
+        </div>
+
+        <div class="interpretation">
+          <b>해석</b><br/>
+          \(k\)가 커질수록(입력공간이 표본수 대비 커질수록) 하한이 \(\frac12\)에 가까워진다:
+          “절반 가까이 틀릴 수밖에 없음”.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes — Chapter 5
+  </div>
+</div>
+
+</body>
+</html>

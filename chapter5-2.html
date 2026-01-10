@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PART 2 — Error Decomposition (5.7): Approximation vs Estimation</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+      --good:#16a34a; --warn:#f59e0b; --bad:#ef4444; --purple:#7c3aed;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.75;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1120px; margin:0 auto;}
+
+    header{
+      text-align:center; padding:52px 22px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:22px; margin-bottom:28px;
+    }
+    header h1{margin:0; font-size:2.15rem; letter-spacing:0.2px;}
+    header p{margin:12px 0 0; opacity:.92;}
+
+    section{
+      background:var(--card); padding:0; border-radius:16px;
+      margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow:hidden;
+    }
+    details{ width:100%; }
+    summary{
+      list-style:none; padding:22px 28px; cursor:pointer;
+      outline:none; transition: background 0.18s ease;
+    }
+    summary:hover{ background:#f1f5f9; }
+    summary::-webkit-details-marker{ display:none; }
+
+    h2{
+      display:flex; justify-content:space-between; align-items:center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.3rem;
+    }
+    h2::after{
+      content:'->'; font-size:1.05rem; transition: transform .25s ease;
+      color:var(--muted);
+    }
+    details[open] h2::after{ transform: rotate(90deg); }
+
+    .content{ padding:0 30px 30px 30px; }
+    h3{
+      color:var(--secondary); margin:24px 0 10px; font-size:1.15rem;
+      border-bottom:1px solid var(--border); padding-bottom:6px;
+    }
+    h4{
+      margin:18px 0 8px; font-size:1rem; color:#0f172a;
+      font-weight:900;
+    }
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:12px; margin:14px 0;
+      font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:14px 14px; border-radius:12px;
+      margin:14px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation{
+      background:#f8fafc; padding:14px; border-radius:12px;
+      border:1px dashed var(--secondary); margin:14px 0;
+    }
+    .interpretation b{ color:var(--secondary); }
+
+    .step-box{
+      border-left:3px solid var(--accent);
+      background:#fffcf5; padding:14px; margin:12px 0;
+      border-radius:0 12px 12px 0;
+    }
+
+    .pill{
+      display:inline-block; padding:2px 10px; border-radius:999px;
+      font-size:.86rem; font-weight:900; margin-left:8px;
+      background:#e2e8f0; color:#0f172a;
+      vertical-align:middle;
+    }
+    .pill.part{ background:#e0e7ff; color:#3730a3; }
+    .pill.eq{ background:#ede9fe; color:#5b21b6; }
+    .pill.app{ background:#dcfce7; color:#166534; }
+    .pill.est{ background:#ffedd5; color:#9a3412; }
+    .pill.trade{ background:#fee2e2; color:#991b1b; }
+
+    ul{ margin:10px 0 10px 22px; }
+    ol{ margin:10px 0 10px 22px; }
+    li{ margin:6px 0; }
+
+    table{
+      width:100%; border-collapse:separate; border-spacing:0;
+      border:1px solid var(--border); border-radius:14px; overflow:hidden;
+      margin:14px 0;
+    }
+    th, td{
+      padding:12px 12px; border-bottom:1px solid var(--border);
+      text-align:left; vertical-align:top;
+    }
+    th{
+      background:#f8fafc; color:#0f172a; font-weight:900;
+    }
+    tr:last-child td{ border-bottom:none; }
+
+    .grid{
+      display:grid; grid-template-columns:1fr; gap:10px;
+    }
+    @media (min-width: 980px){
+      .grid{ grid-template-columns:1fr 1fr; }
+    }
+    .card{
+      border:1px solid var(--border); border-radius:14px;
+      padding:14px 14px; background:#fff;
+    }
+    .card b{ color:#0f172a; }
+    .muted{ color:var(--muted); }
+
+    .footer{
+      text-align:center; color:var(--muted); font-size:.9rem; margin:38px 0;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <header>
+    <h1>Chapter 5: The Bias-Complexity Tradeoff - PART 2</h1>
+    <p>왜 가설공간을 제한해야 하는가: 근사오차(표현력) vs 추정오차(과적합) tradeoff</p>
+  </header>
+
+  <section>
+    <details open>
+      <summary><h2>1) 문제의식 다시 잡기 <span class="pill part">Motivation</span></h2></summary>
+      <div class="content">
+        <div class="quote">
+          PART 1 결론: <b>아무 가정도 없으면</b>(PAC에서 모든 함수 허용) <b>어떤 알고리즘도 잘할 수 없다</b> (NFL).<br/>
+          그럼 질문: “그래서 어떤 가정을 해야 하고, 그 가정이 어떤 대가를 치르게 하나?”
+        </div>
+        <p>이 질문을 수식으로 답하는 공식이 <b>Error Decomposition</b>.</p>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2) 식 (5.7): 전체 오차 분해 <span class="pill eq">(5.7)</span></h2></summary>
+      <div class="content">
+
+        <div class="formula">
+          $$\boxed{
+          L_D(h_S)
+          =
+          \underbrace{\min_{h\in\mathcal H} L_D(h)}_{\text{근사오차}}
+          \;+\;
+          \underbrace{\Big(L_D(h_S)-\min_{h\in\mathcal H} L_D(h)\Big)}_{\text{추정오차}}
+          }
+          \tag{5.7}$$
+        </div>
+
+        <div class="interpretation">
+          <b>요지</b><br/>
+          “실제로 학습된 모델의 진짜 오차”는<br/>
+          (1) 가설공간의 표현 한계(근사오차) + (2) 유한 표본 때문에 생긴 선택 실패(추정오차)로 분해된다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>3) \(h_S\)는 뭐냐? <span class="pill part">Definition</span></h2></summary>
+      <div class="content">
+        <ul>
+          <li>\(S\): 훈련 데이터</li>
+          <li>\(h_S := A(S)\): 훈련 데이터로 ERM을 해서 실제로 선택한 가설</li>
+        </ul>
+        <div class="quote">
+          즉 \(h_S\)는 우리가 실전에 쓰는 “학습된 모델”.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>4) 근사오차 (Approximation Error) <span class="pill app">Approx</span></h2></summary>
+      <div class="content">
+
+        <h3>정의</h3>
+        <div class="formula">
+          $$\varepsilon_{\text{app}}
+          :=
+          \min_{h\in\mathcal H} L_D(h).$$
+        </div>
+
+        <h3>의미</h3>
+        <div class="quote">
+          “이 가설공간으로는 아무리 잘해도 이 이상은 못 맞춘다.”
+        </div>
+
+        <h3>왜 생기냐?</h3>
+        <ul>
+          <li>NFL을 피하려고 가설공간 \(\mathcal H\)를 제한했기 때문</li>
+          <li>즉, prior knowledge / inductive bias의 비용</li>
+        </ul>
+
+        <h3>성질 정리</h3>
+        <ul>
+          <li> 데이터 수 \(m\)과 무관</li>
+          <li> 오직 \(\mathcal H\)와 진짜 분포 \(D\)에 의존</li>
+          <li>\(\mathcal H\)를 키우면 \(\varepsilon_{\text{app}}\)는 ↓ (줄어들 가능성)</li>
+        </ul>
+
+        <h3>직관적 예시 (언더피팅)</h3>
+        <ul>
+          <li>실제 경계: 곡선</li>
+          <li>\(\mathcal H\): 직선 분류기만 허용</li>
+        </ul>
+        <div class="step-box">
+          데이터가 무한히 많아도 직선으로는 완벽 분리가 불가 → 근사오차가 남는다.
+        </div>
+
+        <h3>PAC vs Agnostic 연결</h3>
+        <div class="grid">
+          <div class="card">
+            <h4>PAC (realizable)</h4>
+            <div class="formula">
+              $$\exists h\in\mathcal H \text{ s.t. } L_D(h)=0$$
+            </div>
+            <p>→ 근사오차 \(=0\)</p>
+          </div>
+          <div class="card">
+            <h4>Agnostic PAC</h4>
+            <p>그런 \(h\)가 없을 수 있음</p>
+            <p>→ 근사오차 \(>0\) (현실은 거의 항상 이쪽)</p>
+          </div>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>5) 추정오차 (Estimation Error) <span class="pill est">Estimation</span></h2></summary>
+      <div class="content">
+
+        <h3>정의</h3>
+        <div class="formula">
+          $$\varepsilon_{\text{est}}
+          :=
+          L_D(h_S)-\min_{h\in\mathcal H} L_D(h).$$
+        </div>
+
+        <h3>의미</h3>
+        <div class="quote">
+          “가설공간 안에서는 더 잘할 수 있었는데, 데이터가 부족해서 그걸 못 골랐다.”
+        </div>
+
+        <h3>왜 생기냐?</h3>
+        <ul>
+          <li>ERM은 훈련오차만 보고 가설 선택</li>
+          <li>훈련오차 \(\neq\) 진짜 오차</li>
+          <li>샘플이 적으면 우연한 패턴에 속음</li>
+        </ul>
+        <div class="step-box">
+          -> 과적합(overfitting)
+        </div>
+
+        <h3>성질 정리</h3>
+        <ul>
+          <li> 분포 \(D\)의 본질적 한계가 아님</li>
+          <li> 샘플 수 \(m\), 가설공간 복잡도에 의존</li>
+          <li>\(m\uparrow\Rightarrow \varepsilon_{\text{est}}\downarrow\)</li>
+          <li>\(\mathcal H\uparrow\Rightarrow \varepsilon_{\text{est}}\uparrow\)</li>
+        </ul>
+
+        <h3>직관적 예시 (오버피팅)</h3>
+        <ul>
+          <li>데이터 10개</li>
+          <li>가설공간: 엄청 복잡한 함수들</li>
+        </ul>
+        <div class="step-box">
+          훈련 데이터 100% 암기 → 새 데이터에서는 성능 폭망 → 추정오차가 커진다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>6) Bias–Complexity Tradeoff (핵심 메시지) <span class="pill trade">Tradeoff</span></h2></summary>
+      <div class="content">
+
+        <h3>두 오차를 같이 보기</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>가설공간 \(\mathcal H\)</th>
+              <th>근사오차</th>
+              <th>추정오차</th>
+              <th>결과</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>너무 작음</td>
+              <td>큼</td>
+              <td>작음</td>
+              <td>언더피팅</td>
+            </tr>
+            <tr>
+              <td>너무 큼</td>
+              <td>작음</td>
+              <td>큼</td>
+              <td>오버피팅</td>
+            </tr>
+            <tr>
+              <td>적당함</td>
+              <td>작음</td>
+              <td>작음</td>
+              <td>good!</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="interpretation">
+          <b>핵심</b><br/>
+          \(\mathcal H\)를 키우면 근사오차는 줄 수 있지만, 추정오차는 늘 수 있다.<br/>
+          이게 bias–variance / bias–complexity tradeoff.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>7) 의료 예제: 2D vs 5D (rectangle hypothesis) <span class="pill trade">Example</span></h2></summary>
+      <div class="content">
+
+        <div class="grid">
+          <div class="card">
+            <h3>2D (BP, BMI)</h3>
+            <ul>
+              <li>\(\mathcal H\) 작음</li>
+              <li>추정오차 \(\downarrow\)</li>
+              <li>근사오차 \(\uparrow\)</li>
+            </ul>
+            <div class="step-box">
+              데이터가 적을 때 유리
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>5D (BP, BMI, A, P, I)</h3>
+            <ul>
+              <li>\(\mathcal H\) 큼</li>
+              <li>근사오차 \(\downarrow\)</li>
+              <li>추정오차 \(\uparrow\)</li>
+            </ul>
+            <div class="step-box">
+              데이터가 많을 때 유리
+            </div>
+          </div>
+        </div>
+
+        <div class="interpretation">
+          <b>포인트</b><br/>
+          데이터 수에 맞춰 \(\mathcal H\)의 크기(표현력)를 고르는 게 핵심.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>8) PART 2 한 문장 요약 <span class="pill part">Summary</span></h2></summary>
+      <div class="content">
+        <div class="quote">
+          NFL 때문에 가설공간을 제한해야 하고, 그 제한의 효과는
+          근사오차(표현력 부족)와 추정오차(과적합 위험)로 정확히 분해된다.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes — Chapter 5
+  </div>
+</div>
+</body>
+</html>
