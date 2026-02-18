@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Theory — Hedge / Exponentially Weighted Forecaster(EW)</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow: hidden;
+    }
+    details { width: 100%; }
+    summary {
+      list-style: none; padding: 22px 28px; cursor: pointer;
+      outline: none; transition: background 0.2s ease;
+    }
+    summary:hover { background: #f1f5f9; }
+    summary::-webkit-details-marker { display: none; }
+
+    h2{
+      display: flex; justify-content: space-between; align-items: center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.4rem;
+    }
+    h2::after { content: '->'; font-size: 1.1rem; transition: transform 0.3s ease; color: var(--muted); }
+    details[open] h2::after { transform: rotate(90deg); }
+
+    .content { padding: 0 30px 30px 30px; }
+    h3{color:var(--secondary); margin:24px 0 10px; font-size:1.15rem; border-bottom:1px solid var(--border); padding-bottom:5px;}
+    h4{margin:18px 0 8px; font-size:1rem; color:#0f172a; font-weight:700;}
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:15px; border-radius:10px;
+      margin:15px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation {
+      background: #f8fafc; padding: 15px; border-radius: 10px;
+      border: 1px dashed var(--secondary); margin: 15px 0;
+    }
+    .interpretation b { color: var(--secondary); }
+
+    .step-box { border-left: 3px solid var(--accent); background: #fffcf5; padding: 15px; margin: 10px 0; border-radius: 0 10px 10px 0; }
+    .footer{ text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Hedge / Exponentially Weighted Forecaster(EW)</h1>
+    <p>Hoeffding lemma로 mgf를 잡아서 고전적인 regret bound 뽑는 증명 흐름</p>
+  </header>
+
+  <section>
+    <details>
+      <summary><h2>0) 세팅</h2></summary>
+      <div class="content">
+
+        <p><b>Hedge / Exponentially Weighted Forecaster(EW)</b>의 고전적인 regret bound</p>
+
+        <div class="formula">
+          $$R_T=\sum_{t=1}^T \mathbb E[y_{t,A_t}] - \min_j \sum_{t=1}^T y_{t,j}
+          \;\;\le\;\; \frac{\eta T}{8}+\frac{\log N}{\eta}$$
+        </div>
+
+        <p>을 Hoeffding lemma로 mgf를 잡아서 뽑아내는 증명 흐름이야.</p>
+
+        <h3>정의</h3>
+        <ul>
+          <li>손실(또는 비용) \(\;(y_{t,i}\in[0,1])\)</li>
+          <li>누적손실</li>
+        </ul>
+
+        <div class="formula">
+          $$L_{t,i}=\sum_{s=1}^t y_{s,i}$$
+        </div>
+
+        <p>가중치 기반 확률(헤지):</p>
+        <div class="formula">
+          $$p_{t,i}=\frac{\exp(-\eta L_{t-1,i})}{\sum_{k=1}^N \exp(-\eta L_{t-1,k})}$$
+        </div>
+
+        <p>알고리즘은 \((A_t\sim p_t)\)로 arm(전문가) 선택.</p>
+
+        <p>우리가 비교할 best fixed expert:</p>
+        <div class="formula">
+          $$\min_j L_{T,j}=\min_j\sum_{t=1}^T y_{t,j}$$
+        </div>
+
+        <p>regret:</p>
+        <div class="formula">
+          $$R_T=\sum_{t=1}^T \mathbb E[y_{t,A_t}] - \min_j L_{T,j}$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>1) Hoeffding lemma 적용</h2></summary>
+      <div class="content">
+
+        <p>Hoeffding lemma(형태)</p>
+        <p>임의의 확률변수 \((Z\in[a,b])\)이면 모든 \((\lambda\in\mathbb R)\)에 대해</p>
+
+        <div class="formula">
+          $$\mathbb E\Big[e^{\lambda(Z-\mathbb E Z)}\Big]\le \exp\!\Big(\frac{\lambda^2(b-a)^2}{8}\Big)$$
+        </div>
+
+        <p>여기서 </p>
+
+        <div class="step-box">
+          <div>\((Z:=y_{t,A_t})\)</div>
+          <div>구간 \(([a,b]=[0,1]\Rightarrow (b-a)^2=1)\)</div>
+          <div>\((\lambda=-\eta)\)</div>
+        </div>
+
+        <p>를 넣어서</p>
+
+        <div class="formula">
+          $$\mathbb E\Big[e^{-\eta\,(y_{t,A_t}-\mathbb E[y_{t,A_t}])}\Big]\le \exp\Big(\frac{\eta^2}{8}\Big)$$
+        </div>
+
+        <p>를 얻는 거야.</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2) mgf 부등식을 “기댓값”에 대한 상계로 바꾸기</h2></summary>
+      <div class="content">
+
+        <p>위 식을 전개하면</p>
+
+        <div class="formula">
+          $$\mathbb E\big[e^{-\eta y_{t,A_t}}\,e^{\eta\,\mathbb E[y_{t,A_t}]}\big]\le e^{\eta^2/8}$$
+        </div>
+
+        <p>상수 \((e^{\eta \mathbb E[y_{t,A_t}]})\)는 기대 밖으로 빠지므로</p>
+
+        <div class="formula">
+          $$e^{\eta\,\mathbb E[y_{t,A_t}]}\cdot \mathbb E\big[e^{-\eta y_{t,A_t}}\big]\le e^{\eta^2/8}$$
+        </div>
+
+        <p>양변에 로그를 취해서 \((\mathbb E[y_{t,A_t}])\)를 고립시키면</p>
+
+        <div class="formula">
+          $$\eta\,\mathbb E[y_{t,A_t}] + \log \mathbb E[e^{-\eta y_{t,A_t}}]\le \frac{\eta^2}{8}$$
+        </div>
+
+        <p>따라서</p>
+
+        <div class="formula">
+          $$\boxed{\mathbb E[y_{t,A_t}]
+          \le \frac{\eta}{8} -\frac{1}{\eta}\log \mathbb E[e^{-\eta y_{t,A_t}}]}$$
+        </div>
+
+        <div class="formula">
+          $$\mathbb E(y_{t,A_t})\le \frac{\eta}{8}-\frac{1}{\eta}\log \mathbb E(e^{-\eta y_{t,A_t}})$$
+        </div>
+
+        <p>이 바로 이거.</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>$$3) (t=1\sim T) 합치기$$</h2></summary>
+      <div class="content">
+
+        <p>양변을 합하면</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \mathbb E[y_{t,A_t}]
+          \le
+          \frac{\eta T}{8}
+          -\frac{1}{\eta}\sum_{t=1}^T \log \mathbb E[e^{-\eta y_{t,A_t}}]$$
+        </div>
+
+        <p>즉, 이제 남은 일은</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \log \mathbb E[e^{-\eta y_{t,A_t}}]$$
+        </div>
+
+        <p>이걸 헤지 업데이트식으로 텔레스코핑시키는 것.</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>$$4) (\mathbb E[e^{-\eta y_{t,A_t}}])를 (p_{t,i})로 전개$$</h2></summary>
+      <div class="content">
+
+        <p>조건부로(현재 라운드에서 \((A_t\sim p_t)\))이면</p>
+
+        <div class="formula">
+          $$\mathbb E[e^{-\eta y_{t,A_t}}]
+          =\sum_{i=1}^N p_{t,i}\,e^{-\eta y_{t,i}}$$
+        </div>
+
+        <p>이제 \((p_{t,i})\)의 정의를 그대로 대입:</p>
+
+        <div class="formula">
+          $$p_{t,i}=\frac{e^{-\eta L_{t-1,i}}}{\sum_{k} e^{-\eta L_{t-1,k}}}$$
+        </div>
+
+        <p>그래서</p>
+
+        <div class="formula">
+          $$\sum_{i} p_{t,i}e^{-\eta y_{t,i}}
+          =\frac{\sum_i e^{-\eta L_{t-1,i}}e^{-\eta y_{t,i}}}{\sum_k e^{-\eta L_{t-1,k}}}
+          =\frac{\sum_i e^{-\eta(L_{t-1,i}+y_{t,i})}}{\sum_k e^{-\eta L_{t-1,k}}}$$
+        </div>
+
+        <p>그런데 \((L_{t,i}=L_{t-1,i}+y_{t,i})\) 이므로</p>
+
+        <div class="formula">
+          $$\boxed{
+          \mathbb E[e^{-\eta y_{t,A_t}}]
+          =\frac{\sum_{i=1}^N e^{-\eta L_{t,i}}}{\sum_{i=1}^N e^{-\eta L_{t-1,i}}}
+          }$$
+        </div>
+
+        <p>이게 핵심 줄.</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>5) 로그 합이 텔레스코핑으로 정리됨</h2></summary>
+      <div class="content">
+
+        <p>이제 로그를 씌우고 합치면:</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \log \mathbb E[e^{-\eta y_{t,A_t}}]
+          =\sum_{t=1}^T
+          \log\left(
+          \frac{\sum_i e^{-\eta L_{t,i}}}{\sum_i e^{-\eta L_{t-1,i}}}
+          \right)$$
+        </div>
+
+        <p>로그 성질로</p>
+
+        <div class="formula">
+          $$=\sum_{t=1}^T
+          \left[
+          \log\Big(\sum_i e^{-\eta L_{t,i}}\Big)
+          -\log\Big(\sum_i e^{-\eta L_{t-1,i}}\Big)
+          \right]$$
+        </div>
+
+        <p>이건 완전한 텔레스코핑이어서</p>
+
+        <div class="formula">
+          $$\log\Big(\sum_i e^{-\eta L_{T,i}}\Big)
+          -\log\Big(\sum_i e^{-\eta L_{0,i}}\Big)$$
+        </div>
+
+        <p>보통 \((L_{0,i}=0)\)이라서 \((\sum_i e^{-\eta L_{0,i}}=\sum_i 1=N)\). 따라서</p>
+
+        <div class="formula">
+          $$\boxed{
+          \sum_{t=1}^T \log \mathbb E[e^{-\eta y_{t,A_t}}]
+          =\log\Big(\sum_i e^{-\eta L_{T,i}}\Big) - \log N
+          }$$
+        </div>
+
+        <p>마지막 텔레스코핑 줄이 이거.</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>6) best expert와 연결</h2></summary>
+      <div class="content">
+
+        <div class="formula">
+          $$\sum_i e^{-\eta L_{T,i}}
+          \ge
+          \exp\big(-\eta \min_j L_{T,j}\big)$$
+        </div>
+
+        <p>왜냐하면 합은 각 항보다 크고, 특히 최소값을 가지는 \((j^\*)\) 항이 있으니까:
+        \((\sum_i e^{-\eta L_{T,i}} \ge e^{-\eta L_{T,j^\*}})\).
+        따라서 로그를 취하면</p>
+
+        <div class="formula">
+          $$\log\Big(\sum_i e^{-\eta L_{T,i}}\Big)
+          \ge
+          -\eta \min_j L_{T,j}$$
+        </div>
+
+        <p>양변에 \(\left(-\frac{1}{\eta}\right)\)를 곱하면(부호 뒤집힘 주의)</p>
+
+        <div class="formula">
+          $$-\frac{1}{\eta}\log\Big(\sum_i e^{-\eta L_{T,i}}\Big)
+          \le
+          \min_j L_{T,j}$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>7) 이제 전부 합치면 regret bound 완성</h2></summary>
+      <div class="content">
+
+        <p>우리가 3)에서 갖고 있던 식:</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \mathbb E[y_{t,A_t}]
+          \le
+          \frac{\eta T}{8}
+          -\frac{1}{\eta}\sum_{t=1}^T \log \mathbb E[e^{-\eta y_{t,A_t}}]$$
+        </div>
+
+        <p>여기서 5)의 텔레스코핑 결과를 넣으면</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \mathbb E[y_{t,A_t}]
+          \le
+          \frac{\eta T}{8}
+          -\frac{1}{\eta}\Big(\log(\sum_i e^{-\eta L_{T,i}})-\log N\Big)$$
+        </div>
+
+        <p>정리:</p>
+
+        <div class="formula">
+          $$\frac{\eta T}{8}
+          +\frac{\log N}{\eta}
+          -\frac{1}{\eta}\log\Big(\sum_i e^{-\eta L_{T,i}}\Big)$$
+        </div>
+
+        <p>그리고 6)에서</p>
+
+        <div class="formula">
+          $$-\frac{1}{\eta}\log(\sum_i e^{-\eta L_{T,i}})
+          \le
+          \min_j L_{T,j}$$
+        </div>
+
+        <p>를 얻었으니까</p>
+
+        <div class="formula">
+          $$\sum_{t=1}^T \mathbb E[y_{t,A_t}]
+          \le
+          \frac{\eta T}{8}
+          +\frac{\log N}{\eta}
+          +\min_j L_{T,j}$$
+        </div>
+
+        <p>양변에서 \((\min_j L_{T,j})\)를 빼면:</p>
+
+        <div class="formula">
+          $$\boxed{
+          R_T
+          \le
+          \frac{\eta T}{8}
+          +\frac{\log N}{\eta}
+          }$$
+        </div>
+
+        <p>맨 위 결론이 정확히 이거.</p>
+
+        <div class="quote">
+          (보너스) \((\eta)\) 최적 선택까지 한 줄로<br/>
+          우변 \(\left(\frac{\eta T}{8}+\frac{\log N}{\eta}\right)\)를 \((\eta)\)로 최소화하면
+        </div>
+
+        <div class="formula">
+          $$\eta^*=\sqrt{\frac{8\log N}{T}}$$
+        </div>
+
+        <p>그때</p>
+
+        <div class="formula">
+          $$R_T \le \sqrt{\frac{T\log N}{2}}$$
+        </div>
+
+        <p>(상수는 정의/레마 형태에 따라 약간 바뀜)</p>
+
+      </div>
+    </details>
+  </section>
+
+  <section style="background: #f8fafc; border: 1px solid var(--border); padding: 25px; border-radius: 15px; margin: 20px;">
+    <h3 style="margin-top: 0;"> 개념 확인</h3>
+    <ul>
+      <li><b>무슨 bound냐:</b> Hedge/EW가 적대적 손실 시퀀스에서도 best fixed expert 대비 누적 손실이 얼마나 더 크냐(=regret)를 \(\eta, T, N\)으로 상계.</li>
+      <li><b>핵심 도구:</b> Hoeffding lemma로 \(\mathbb{E}[e^{-\eta(y-\mathbb Ey)}]\)를 잡고, \(\log\sum_i e^{-\eta L_{t,i}}\) 형태로 텔레스코핑.</li>
+      <li><b>왜 \(\log N\)이 나오나:</b> 시작점 \(\sum_i e^{-\eta L_{0,i}}=\sum_i 1 = N\)에서 바로 \(-\log N\)이 생김.</li>
+      <li><b>왜 \(\min_j L_{T,j}\)가 나오나:</b> \(\sum_i e^{-\eta L_{T,i}}\)는 최소 누적손실을 가진 항 하나 이상을 포함하므로 그 항으로 하계 가능.</li>
+    </ul>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Bandits Notes
+  </div>
+
+</div>
+
+</body>
+
+</html>

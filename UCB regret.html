@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bandits — UCB1 Regret Bound Proof (Sub-note)</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow: hidden;
+    }
+    details { width: 100%; }
+    summary {
+      list-style: none; padding: 22px 28px; cursor: pointer;
+      outline: none; transition: background 0.2s ease;
+    }
+    summary:hover { background: #f1f5f9; }
+    summary::-webkit-details-marker { display: none; }
+
+    h2{
+      display: flex; justify-content: space-between; align-items: center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.4rem;
+    }
+    h2::after { content: '->'; font-size: 1.1rem; transition: transform 0.3s ease; color: var(--muted); }
+    details[open] h2::after { transform: rotate(90deg); }
+
+    .content { padding: 0 30px 30px 30px; }
+    h3{color:var(--secondary); margin:24px 0 10px; font-size:1.15rem; border-bottom:1px solid var(--border); padding-bottom:5px;}
+    h4{margin:18px 0 8px; font-size:1rem; color:#0f172a; font-weight:700;}
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:15px; border-radius:10px;
+      margin:15px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation {
+      background: #f8fafc; padding: 15px; border-radius: 10px;
+      border: 1px dashed var(--secondary); margin: 15px 0;
+    }
+    .interpretation b { color: var(--secondary); }
+
+    .step-box { border-left: 3px solid var(--accent); background: #fffcf5; padding: 15px; margin: 10px 0; border-radius: 0 10px 10px 0; }
+    .warn{
+      background:#fff7ed; border:1px solid #fed7aa;
+      padding:12px 16px; border-radius:10px; margin:15px 0;
+    }
+    .muted{ color:var(--muted); }
+    ul{ margin: 10px 0 0 22px; }
+    li{ margin: 6px 0; }
+    code.k{
+      background:#0b1220; color:#e5e7eb; padding:2px 6px; border-radius:6px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:.95em;
+    }
+    table{ width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td{ border:1px solid var(--border); padding:10px; vertical-align:top; }
+    th{ background:#f1f5f9; text-align:left; color:#0f172a; }
+    .footer{ text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0; }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <header>
+    <h1>UCB1 Regret Bound — Proof</h1>
+    <p>UCB가 \(O(\log T)\) regret를 달성하는 전형적 증명 흐름 </p>
+  </header>
+
+  <!-- ===================================================== -->
+  <section>
+    <details open>
+      <summary><h2>0. 세팅과 목표 (문제 정의)</h2></summary>
+      <div class="content">
+
+        <p class="quote">
+          “UCB1은 suboptimal arm을 대략 \(\log T\)번만 뽑게 만들고,
+          그 결과 누적 regret가 \(O(\log T)\)가 된다.”
+        </p>
+
+        <h3>1) 기본 기호</h3>
+        <ul>
+          <li>arm 개수: \(K\)</li>
+          <li>각 arm \(i\)의 보상 평균: \(\mu_i\)</li>
+          <li>최적 arm: \(i^* \in \arg\max_i \mu_i\), 최적 평균: \(\mu^* := \mu_{i^*}\)</li>
+          <li>gap: \(\Delta_i := \mu^* - \mu_i\)  (최적이면 \(\Delta_i = 0\), suboptimal이면 \(\Delta_i>0\))</li>
+        </ul>
+
+        <h3>2) 선택 횟수 (핵심 랜덤 변수)</h3>
+        <div class="formula">
+          $$T_i(T) := \sum_{t=1}^{T}\mathbf{1}(A_t = i)$$
+        </div>
+        <div class="interpretation">
+          <b>의미:</b> \(T\)라운드 동안 arm \(i\)를 고른 총 횟수이다.
+          <br/>
+          <span class="muted">→ regret는 결국 “suboptimal arm을 몇 번 뽑았나”의 합으로 쓴다.</span>
+        </div>
+
+        <h3>3) Regret 정의</h3>
+        <div class="formula">
+          $$R(T) := \sum_{t=1}^{T}\big(\mu^* - \mu_{A_t}\big)
+          \;=\; \sum_{i=1}^{K}\Delta_i\,T_i(T)$$
+        </div>
+        <div class="interpretation">
+          <b>포인트:</b> regret는 suboptimal arm \(i\)마다 “한 번 뽑을 때 손해 \(\Delta_i\)” × “뽑은 횟수 \(T_i(T)\)”의 합으로 분해된다.
+        </div>
+
+        <h3>4) UCB1 선택 규칙 (대표 형태)</h3>
+        <div class="formula">
+          $$\text{At time }t,\quad
+          A_t \in \arg\max_{i\in[K]}
+          \left(\hat\mu_i(t-1) + \sqrt{\frac{2\sigma^2 \log t}{T_i(t-1)}}\right)$$
+        </div>
+        <div class="warn">
+          <b>주의:</b> 강의/노트에 따라 상수(2, 4 등), \(\log t\) vs \(\log T\),
+          혹은 \(\sigma^2\) 포함 여부가 조금씩 다를 수 있다.
+          <br/>
+          하지만 증명 구조는 동일하고, 최종적으로 \(O(\log T)\)가 나온다는 점이 핵심이다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>1. “좋은 사건(Good event)” 정의</h2></summary>
+      <div class="content">
+
+        <h3>1) 아이디어</h3>
+        <div class="step-box">
+          <b>전략:</b> “신뢰구간이 깨지지 않는 사건” \(G\)에서는 UCB가 합리적으로 동작해서 suboptimal arm을 많이 못 뽑는다.
+          <br/>
+          그리고 “신뢰구간이 깨지는 나쁜 사건” \(G^c\)는 확률이 매우 작게 눌린다.
+        </div>
+
+        <h3>2) 사건의 형태 (팔별로 정의해도 되고 전체로 정의해도 됨)</h3>
+
+        <p class="muted">여기서는 질문에 준 구조를 최대한 그대로 따라 \(G_i\) 형태로 적는다.</p>
+
+        <div class="formula">
+          $$
+          G_i
+          :=
+          \Big\{
+          \forall s\ge 1,\;
+          \hat\mu_i(s) \le \mu_i + \sqrt{\tfrac{2\sigma^2 \log T}{s}}
+          \Big\}
+          \;\cap\;
+          \Big\{
+          \forall s\ge 1,\;
+          \hat\mu_{i^*}(s) \ge \mu^* - \sqrt{\tfrac{2\sigma^2 \log T}{s}}
+          \Big\}.
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>해석(문장으로 그대로):</b><br/>
+          (1) suboptimal arm \(i\)는 <b>과대평가되지 않는다</b> (표본평균이 진짜 평균보다 신뢰구간 이상으로 위로 튀지 않는다).<br/>
+          (2) 최적 arm \(i^*\)는 <b>과소평가되지 않는다</b> (표본평균이 진짜 평균보다 신뢰구간 이상으로 아래로 떨어지지 않는다).
+        </div>
+
+        <div class="warn">
+          <b>왜 이런 사건이 필요?</b><br/>
+          UCB가 suboptimal arm을 고르는 유일한 이유는 “그 arm이 좋게 보이거나” 혹은 “최적 arm이 나쁘게 보이거나” 둘 중 하나다.
+          \(G_i\)는 이 두 착시를 동시에 막는다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>2. 메인 목표: \(\mathbb{E}[T_i(T)] \le u_i + T\Pr(G_i^c)\)</h2></summary>
+      <div class="content">
+
+        <h3>1) 왜 이 형태를 노리나?</h3>
+        <div class="step-box">
+          \(\mathbb{E}[T_i(T)]\)를 직접 다루기 어렵다 → 대신 “좋은 사건에서는 \(T_i(T)\)가 작다”와 “나쁜 사건은 거의 안 일어난다”로 쪼갠다.
+        </div>
+
+        <h3>2) 분해 스케치</h3>
+        <div class="formula">
+          $$
+          \mathbb{E}[T_i(T)]
+          =
+          \mathbb{E}[T_i(T)\mid G_i]\Pr(G_i)
+          +
+          \mathbb{E}[T_i(T)\mid G_i^c]\Pr(G_i^c).
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> 전체 기대값은 조건부 기대값의 법칙(총기대법칙)으로 항상 이렇게 분해된다.
+        </div>
+
+        <h3>3) 최악의 경우 처리</h3>
+        <ul>
+          <li>\(G_i\)에서는 우리가 \(T_i(T)\le u_i\)를 보일 것이다.</li>
+          <li>\(G_i^c\)에서는 최악으로 \(T_i(T)\le T\)만 알면 충분하다.</li>
+        </ul>
+
+        <div class="formula">
+          $$
+          \mathbb{E}[T_i(T)]
+          \le
+          u_i\Pr(G_i) + T\Pr(G_i^c)
+          \le
+          u_i + T\Pr(G_i^c).
+          $$
+        </div>
+
+        <div class="warn">
+          <b>핵심:</b> 그래서 이제 남은 일은 딱 2개다.
+          <ol>
+            <li>\(G_i\) 안에서 \(T_i(T)\le u_i\) 보이기</li>
+            <li>\(\Pr(G_i^c)\)를 작게 눌러서 \(T\Pr(G_i^c)\)가 상수 수준이 되게 하기</li>
+          </ol>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>3. (좋은 사건에서) \(T_i(T) \le u_i\) 를 보이기</h2></summary>
+      <div class="content">
+
+        <h3>1) 반대로 가정해서 “모순” 만들기</h3>
+        <div class="step-box">
+          <b>가정:</b> \(T_i(T) > u_i\)라고 해보자.<br/>
+          그러면 어떤 시점에는 이미 \(u_i\)번 뽑았는데도 또 arm \(i\)를 뽑는 순간이 존재한다.
+        </div>
+
+        <p>
+          정확히는, \(T_i(T) > u_i\)이면 라운드들 중 적어도 하나 \(t_i\)가 존재해서
+          \[
+            T_i(t_i-1)=u_i \quad\text{인데도}\quad A_{t_i}=i
+          \]
+          가 된다.
+        </p>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(T_i(t)\)는 \(t\)가 1씩 증가할 때 0 또는 1만 증가하는 정수 과정이므로,
+          최종값이 \(u_i\)를 넘었다면 “\(u_i\)에서 \(u_i+1\)로 넘어가는 최초 시점”이 반드시 있다.
+        </div>
+
+        <h3>2) UCB 규칙이 강제하는 부등식</h3>
+        <p>그 시점 \(t_i\)에서 arm \(i\)가 선택되려면, UCB 점수가 최적 arm보다 크거나 같아야 한다:</p>
+        <div class="formula">
+          $$\mathrm{UCB}_i(t_i-1) \ge \mathrm{UCB}_{i^*}(t_i-1).$$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> UCB1은 “UCB 점수가 가장 큰 arm”을 고르므로,
+          최적 arm의 점수보다 작았다면 arm \(i\)가 선택될 수 없다.
+        </div>
+
+        <h3>3) 좋은 사건 \(G_i\) 안에서의 상/하한</h3>
+
+        <h4>(a) 최적 arm의 UCB는 \(\mu^*\) 이상</h4>
+        <div class="formula">
+          $$
+          \mathrm{UCB}_{i^*}(t_i-1)
+          = \hat\mu_{i^*}(T_{i^*}(t_i-1))
+          + \sqrt{\frac{2\sigma^2\log t_i}{T_{i^*}(t_i-1)}}
+          \ge \mu^*.
+          $$
+        </div>
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(G_i\)에서 최적 arm은 과소평가되지 않으므로
+          \(\hat\mu_{i^*}(s)\ge \mu^* - \sqrt{\frac{2\sigma^2\log T}{s}}\)가 모든 \(s\)에 대해 성립한다.
+          그래서 거기에 같은 형태의 반지름을 더하면 \(\mu^*\)를 덮는다.
+          <br/>
+          <span class="muted">※ 로그가 \(\log t_i\)냐 \(\log T\)냐는 상수 조정으로 흡수 가능(흐름 동일).</span>
+        </div>
+
+        <h4>(b) arm \(i\)의 UCB는 \(\mu_i +\) (작은 반지름) 이하</h4>
+        <p>\(T_i(t_i-1)=u_i\)이므로, 그때 arm \(i\)의 UCB는</p>
+        <div class="formula">
+          $$
+          \mathrm{UCB}_i(t_i-1)
+          =
+          \hat\mu_i(u_i) + \sqrt{\frac{2\sigma^2\log t_i}{u_i}}
+          \le
+          \mu_i + \sqrt{\frac{2\sigma^2\log T}{u_i}} + \sqrt{\frac{2\sigma^2\log t_i}{u_i}}.
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(G_i\)에서 suboptimal arm은 과대평가되지 않으므로
+          \(\hat\mu_i(u_i)\le \mu_i + \sqrt{\frac{2\sigma^2\log T}{u_i}}\).
+          그리고 UCB 반지름 자체가 추가로 더해져 있다.
+        </div>
+
+        <div class="warn">
+          <b>실무적으로는 보통 이렇게 정리한다:</b><br/>
+          로그와 상수 차이를 정리해서 “어차피 \(\sqrt{\frac{c\log T}{u_i}}\) 꼴”로 만든 뒤,
+          그 값을 \(\Delta_i/2\) 이하로 만들도록 \(u_i\)를 잡는다.
+          <br/>
+          아래는 질문에 준 흐름(“\(\Delta_i/2\)로 두기”) 그대로 간다.
+        </div>
+
+        <h3>4) \(u_i\)를 \(\Delta_i/2\) 조건으로 선택</h3>
+        <p>다음이 성립하도록 \(u_i\)를 잡는다:</p>
+        <div class="formula">
+          $$\sqrt{\frac{2\sigma^2\log T}{u_i}} \le \frac{\Delta_i}{2}.$$
+        </div>
+        <p>예를 들어 아래처럼 두면 충분하다:</p>
+        <div class="formula">
+          $$u_i \;\ge\; \frac{8\sigma^2\log T}{\Delta_i^2}.$$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> 양변 제곱하면
+          \(\frac{2\sigma^2\log T}{u_i} \le \frac{\Delta_i^2}{4}\)
+          ⇔ \(u_i \ge \frac{8\sigma^2\log T}{\Delta_i^2}\).
+        </div>
+
+        <h3>5) 모순 도출 (핵심 한 줄)</h3>
+        <p>\(\mu^*=\mu_i+\Delta_i\)이므로, 위 조건이면</p>
+        <div class="formula">
+          $$
+          \mathrm{UCB}_i(t_i-1)
+          \le
+          \mu_i + \frac{\Delta_i}{2}
+          =
+          \mu^* - \frac{\Delta_i}{2}
+          <
+          \mu^*
+          \le
+          \mathrm{UCB}_{i^*}(t_i-1).
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> 좋은 사건에서는 최적 arm의 UCB가 \(\mu^*\)를 덮고,
+          suboptimal arm은 “진짜 평균 \(\mu_i\) + 작은 반지름” 수준이라
+          gap \(\Delta_i\)의 절반만큼도 못 올라오게 만들 수 있다.
+          그러면 suboptimal arm이 최적 arm을 이기는 상황 자체가 불가능해진다.
+        </div>
+
+        <div class="warn">
+          따라서 가정 \(T_i(T)>u_i\)는 모순이고,
+          좋은 사건 \(G_i\)가 일어나는 한 다음이 성립한다:
+          <div class="formula">
+            $$\boxed{T_i(T)\le u_i \quad (\text{if }G_i\text{ holds})}$$
+          </div>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>4. 기대값 결론: \(\mathbb{E}[T_i(T)] \le u_i + T\Pr(G_i^c)\)</h2></summary>
+      <div class="content">
+
+        <h3>1) 총기대법칙 적용</h3>
+        <div class="formula">
+          $$
+          \mathbb{E}[T_i(T)]
+          =
+          \mathbb{E}[T_i(T)\mid G_i]\Pr(G_i)
+          +
+          \mathbb{E}[T_i(T)\mid G_i^c]\Pr(G_i^c).
+          $$
+        </div>
+
+        <h3>2) 각 항을 상계</h3>
+        <div class="quote">
+          <b>\(G_i\) 안에서는:</b> \(T_i(T)\le u_i\) 이다 → 그래서 \(\mathbb{E}[T_i(T)\mid G_i]\le u_i\).<br/>
+          <b>\(G_i^c\) 안에서는:</b> 최악에 \(T_i(T)\le T\) 이다 → 그래서 \(\mathbb{E}[T_i(T)\mid G_i^c]\le T\).
+        </div>
+
+        <div class="formula">
+          $$
+          \mathbb{E}[T_i(T)]
+          \le
+          u_i\Pr(G_i) + T\Pr(G_i^c)
+          \le
+          u_i + T\Pr(G_i^c).
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>여기서부터는:</b> \(u_i\)는 우리가 이미 \(\frac{\log T}{\Delta_i^2}\) 꼴로 잡을 예정이고,
+          \(\Pr(G_i^c)\)를 \(O(1/T)\) 수준으로 만들면 \(T\Pr(G_i^c)=O(1)\)이 된다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>5. \(\Pr(G_i^c)\) 를 Hoeffding + Union bound로 누르기</h2></summary>
+      <div class="content">
+
+        <h3>1) 나쁜 사건을 둘로 쪼갠다</h3>
+        <div class="formula">
+          $$
+          G_i = A \cap B
+          \quad\Rightarrow\quad
+          G_i^c = A^c \cup B^c
+          \quad\Rightarrow\quad
+          \Pr(G_i^c) \le \Pr(A^c) + \Pr(B^c).
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(A^c \cup B^c\)에 대해 union bound(합집합 확률 상계)를 쓰면 된다.
+        </div>
+
+        <h3>2) (A) 최적 arm이 과소평가되는 사건</h3>
+        <p>\(A\)를 다음처럼 잡자:</p>
+        <div class="formula">
+          $$
+          A :=
+          \Big\{
+          \forall s\ge 1,\;
+          \hat\mu_{i^*}(s) \ge \mu^* - \sqrt{\tfrac{2\sigma^2 \log T}{s}}
+          \Big\}.
+          $$
+        </div>
+
+        <div class="step-box">
+          <b>목표:</b> \(\Pr(A^c)\)를 작게 만들기.<br/>
+          <b>핵심 도구:</b> (고정된 \(s\)에 대해) Hoeffding inequality + (모든 \(s\)에 대해) union bound.
+        </div>
+
+        <p>각 \(s\)에 대해, 평균이 \(\mu^*\)인 표본평균 \(\hat\mu_{i^*}(s)\)가 아래로 크게 벗어날 확률은</p>
+        <div class="formula">
+          $$
+          \Pr\!\left(
+          \hat\mu_{i^*}(s) \le \mu^* - \epsilon
+          \right)
+          \le
+          \exp\!\left(-\frac{2s\epsilon^2}{\sigma^2_{\text{(스케일)}}}\right)
+          $$
+        </div>
+
+        <div class="warn">
+          <b>주의(표기):</b> 위 Hoeffding의 정확한 상수/스케일은 강의에서 어떤 정규화(보상 범위, sub-Gaussian 파라미터)를 쓰는지에 따라 달라진다.
+          여기서는 “\(\sqrt{\frac{2\sigma^2\log T}{s}}\)” 반지름을 쓰는 전형적 형태에 맞춰 “\(T^{-c}\)” 꼴이 나오게 만드는 게 목적이다.
+        </div>
+
+        <p>특히 \(\epsilon = \sqrt{\frac{2\sigma^2\log T}{s}}\)로 두면, 각 \(s\)마다 대략</p>
+        <div class="formula">
+          $$
+          \Pr\!\left(
+          \hat\mu_{i^*}(s) \le \mu^* - \sqrt{\tfrac{2\sigma^2\log T}{s}}
+          \right)
+          \;\lesssim\;
+          T^{-4}\;\;(\text{혹은 }T^{-2}\text{ 같은 형태})
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> Hoeffding은 “\(\exp(-c\cdot s \epsilon^2)\)” 꼴이고,
+          여기서 \(s\epsilon^2 \propto \log T\)로 맞춰주면 \(\exp(-c\log T)=T^{-c}\)가 된다.
+        </div>
+
+        <p>이제 모든 \(s\le T\) 중 하나라도 실패할 확률은 union bound로</p>
+        <div class="formula">
+          $$
+          \Pr(A^c)
+          =
+          \Pr\!\left(\exists s\le T:\;
+          \hat\mu_{i^*}(s) < \mu^* - \sqrt{\tfrac{2\sigma^2\log T}{s}}
+          \right)
+          \le
+          \sum_{s=1}^{T}
+          \Pr(\text{해당 }s\text{에서 실패}).
+          $$
+        </div>
+
+        <div class="quote">
+          질문에서 준 스타일로 쓰면: “각 \(s\)마다 실패확률 \(\le \delta\)로 두면, 합쳐서 \(\le T\delta\)”<br/>
+          즉, \(\boxed{\Pr(A^c)\le T\delta}\) 형태로 쓸 수 있다.
+        </div>
+
+        <h3>3) (B) suboptimal arm \(i\)가 과대평가되는 사건</h3>
+        <p>\(B\)를 다음처럼 잡자:</p>
+        <div class="formula">
+          $$
+          B :=
+          \Big\{
+          \forall s\ge 1,\;
+          \hat\mu_i(s) \le \mu_i + \sqrt{\tfrac{2\sigma^2 \log T}{s}}
+          \Big\}.
+          $$
+        </div>
+
+        <p>특히 우리가 실제로 필요한 것은 “\(s=u_i\)에서의 실패”를 상계하는 형태다:</p>
+        <div class="formula">
+          $$
+          B^c \;\subseteq\;
+          \left\{
+          \hat\mu_i(u_i) > \mu_i + \sqrt{\tfrac{2\sigma^2\log T}{u_i}}
+          \right\}.
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> “모든 \(s\)” 중 하나라도 실패하면 \(B^c\)인데,
+          그중 하나로 \(s=u_i\)를 찍으면 \(B^c\)는 그 사건에 포함된다(상계 목적상 충분).
+        </div>
+
+        <h3>4) 질문에서 준 전개 그대로: \(\Delta_i/2\)로 바꾸기</h3>
+        <p>우리는 앞에서 \(u_i\)를 \(\sqrt{\frac{2\sigma^2\log T}{u_i}}\le \frac{\Delta_i}{2}\)가 되게 잡았다.</p>
+
+        <p>그리고 “나쁜 사건”으로 다음을 보면(질문 흐름과 동일):</p>
+        <div class="formula">
+          $$
+          \hat\mu_i(u_i) + \sqrt{\tfrac{2\sigma^2\log T}{u_i}}
+          \ge
+          \mu_i + \Delta_i
+          $$
+        </div>
+
+        <p>이는 곧</p>
+        <div class="formula">
+          $$
+          \hat\mu_i(u_i) - \mu_i
+          \ge
+          \Delta_i - \sqrt{\tfrac{2\sigma^2\log T}{u_i}}
+          \ge
+          \frac{\Delta_i}{2}.
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(\sqrt{\frac{2\sigma^2\log T}{u_i}}\le \frac{\Delta_i}{2}\) 이므로
+          \(\Delta_i - \sqrt{\cdot}\ge \Delta_i/2\)가 된다.
+        </div>
+
+        <h3>5) Hoeffding로 지수감소 얻기</h3>
+        <div class="formula">
+          $$
+          \Pr\!\left(\hat\mu_i(u_i)-\mu_i \ge \frac{\Delta_i}{2}\right)
+          \le
+          \exp\!\left(-2u_i\left(\frac{\Delta_i}{2}\right)^2\right)
+          =
+          \exp\!\left(-\frac{u_i\Delta_i^2}{2}\right)
+          $$
+        </div>
+
+        <div class="warn">
+          <b>상수 주의:</b> 질문 텍스트에는 \(\exp(-u_i\Delta_i^2/8)\)가 나와있다.
+          이는 (i) Hoeffding의 상수 버전 차이, (ii) \(\sigma^2\) 스케일링, (iii) 반지름 상수 선택 차이 때문에 흔하게 생긴다.
+          <br/>
+          여기서는 질문에 준 결과를 그대로 맞춰서 아래처럼 정리한다:
+        </div>
+
+        <div class="formula">
+          $$
+          \Pr(B^c)
+          \;\le\;
+          \exp\!\left(-\frac{u_i\Delta_i^2}{8}\right).
+          $$
+        </div>
+
+        <h3>6) 최종 결합</h3>
+        <div class="formula">
+          $$
+          \boxed{
+          \Pr(G_i^c)
+          \le
+          \Pr(A^c)+\Pr(B^c)
+          \le
+          T\delta + \exp\!\left(-\frac{u_i\Delta_i^2}{8}\right)
+          }.
+          $$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+  <section>
+    <details>
+      <summary><h2>6. u_i 설정 → \(\Pr(G_i^c)\)를 O(1/T)로 만들기</h2></summary>
+      <div class="content">
+
+        <h3>1) \(u_i\)의 엄밀한 선택</h3>
+        <div class="formula">
+        $$u_i := \left\lceil \frac{8\sigma^2 \log T}{\Delta_i^2} \right\rceil$$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> 이 선택은 정확히
+          \(\sqrt{\frac{2\sigma^2\log T}{u_i}}\le \frac{\Delta_i}{2}\) 조건을 만족시키며,
+          동시에 \(\exp(-u_i\Delta_i^2/8)=\exp(-\sigma^2\log T)\) 꼴로 떨어지게 만든다.
+        </div>
+
+        <h3>2) \(\delta\)도 \(T\)에 맞춰 잡기</h3>
+        <p>질문 흐름대로 \(\delta := 1/T^2\) 같이 잡으면</p>
+        <div class="formula">
+          $$T\delta = \frac{1}{T}.$$
+        </div>
+
+        <h3>3) 지수항 계산</h3>
+        <div class="formula">
+          $$
+          \exp\!\left(-\frac{u_i\Delta_i^2}{8}\right)
+          =
+          \exp\!\left(-\frac{(8\sigma^2\log T)\Delta_i^2/\Delta_i^2}{8}\right)
+          =
+          \exp(-\sigma^2\log T)
+          =
+          T^{-\sigma^2}.
+          $$
+        </div>
+
+        <div class="interpretation">
+          <b>왜냐하면:</b> \(\exp(-a\log T)=T^{-a}\).
+          (여기서 \(\sigma^2=1\)인 버전이면 그냥 \(1/T\)로 떨어진다.)
+        </div>
+
+        <h3>4) 그래서 보통 이렇게 쓴다</h3>
+        <div class="formula">
+          $$
+          \Pr(G_i^c)
+          \le
+          \frac{1}{T} + \frac{1}{T}
+          \le
+          \frac{2}{T}.
+          $$
+        </div>
+
+        <div class="warn">
+          이제 \(T\Pr(G_i^c)\le 2\) 같은 상수가 되어,
+          \(\mathbb{E}[T_i(T)]\)의 주된 항은 \(u_i = O(\log T/\Delta_i^2)\)만 남는다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================================================== -->
+ <section>
+  <details>
+    <summary><h2>7. 최종: \(\mathbb{E}[T_i(T)]\) 및 \(\mathbb{E}[R(T)]\) bound</h2></summary>
+    <div class="content">
+
+      <h3>1) 팔별 선택횟수 기대값</h3>
+      <div class="formula">
+        $$
+        \mathbb{E}[T_i(T)]
+        \le
+        u_i + T\Pr(G_i^c)
+        \le
+        \frac{16\log T}{\Delta_i^2} + 3.
+        $$
+      </div>
+
+      <div class="interpretation">
+        <b>왜냐하면:</b> \(u_i = \frac{16\log T}{\Delta_i^2}\)로 잡으면
+        \(\Pr(G_i^c) \le T\delta + \exp(-u_i\Delta_i^2/8)\)에서
+        \(\delta=1/T^2\)일 때 \(T\delta = 1/T\), 그리고
+        \(\exp(-u_i\Delta_i^2/8)=\exp(-2\log T)=1/T^2\)이므로
+        \(T\Pr(G_i^c) \le 1 + 1/T \le 2\).
+        따라서 \(\mathbb{E}[T_i(T)] \le u_i + 2 \le \frac{16\log T}{\Delta_i^2}+3\).
+      </div>
+
+      <h3>2) regret 합산</h3>
+      <div class="formula">
+        $$
+        \mathbb{E}[R(T)]
+        =
+        \sum_{i:\Delta_i>0}
+        \Delta_i\,\mathbb{E}[T_i(T)]
+        \le
+        \sum_{i:\Delta_i>0}
+        \Delta_i
+        \left(\frac{16\log T}{\Delta_i^2} + 3\right).
+        $$
+      </div>
+
+      <div class="warn">
+        <b>결론:</b> 지배항은 \(\sum_{i:\Delta_i>0}\frac{\log T}{\Delta_i}\) 이므로
+        \(\mathbb{E}[R(T)] = O(\log T)\) (팔 수 \(K\) 고정 시) 가 된다.
+      </div>
+
+    </div>
+  </details>
+</section>
+
+
+  <!-- ===================================================== -->
+  <section style="background: #f8fafc; border: 1px solid var(--border); padding: 25px; border-radius: 15px; margin: 20px;">
+    <h3 style="margin-top: 0;">핵심 직관 요약 (한 번에 암기)</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:28%;">항목</th>
+          <th>의미</th>
+          <th style="width:35%;">왜 이렇게 되는가(직관)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>\(u_i = \Theta(\log T/\Delta_i^2)\)</td>
+          <td>suboptimal arm \(i\)를 “충분히 탐색했다”고 보는 임계 횟수</td>
+          <td>\(\sqrt{\log T/u_i}\) 반지름을 \(\Delta_i/2\) 이하로 만들면, UCB로도 \(\mu^*\)를 못 넘게 됨</td>
+        </tr>
+        <tr>
+          <td>\(\Pr(G_i^c)\)</td>
+          <td>신뢰구간이 깨지는 확률(착시 발생)</td>
+          <td>Hoeffding으로 각 시점 실패확률이 \(T^{-c}\)로 작고, union bound로도 제어 가능</td>
+        </tr>
+        <tr>
+          <td>\(\mathbb{E}[T_i(T)] \le u_i + O(1)\)</td>
+          <td>suboptimal arm은 \(\log T\)번 수준만 뽑힘</td>
+          <td>좋은 사건에서는 \(u_i\) 이상 못 뽑고, 나쁜 사건은 \(O(1/T)\)라 기대 기여가 상수</td>
+        </tr>
+        <tr>
+          <td>\(\mathbb{E}[R(T)]\)</td>
+          <td>누적 regret의 기대값</td>
+          <td>\(\sum_i \Delta_i T_i(T)\) 분해로 인해 \(\sum_i \log T/\Delta_i\)가 지배</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="quote" style="margin-top:16px;">
+      <b>한 문장 요약:</b> “UCB는 불확실성 반지름을 \(\sqrt{\log t / n}\)로 줄여서,
+      gap \(\Delta_i\)를 이길 수 없을 만큼만 suboptimal을 뽑게 만들고, 그 결과 regret는 \(\log T\)로만 증가한다.”
+    </div>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Bandits Notes
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFL Theorem 5.1 Proof Flow (5.1)→(5.6)</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+      --danger:#ef4444; --ok:#16a34a;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.75;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:46px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:26px;
+    }
+    header h1{margin:0; font-size:2.05rem; letter-spacing:0.2px;}
+    header p{margin:10px 0 0; opacity:.92;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow:hidden;
+    }
+    details{ width:100%; }
+    summary{
+      list-style:none; padding:22px 28px; cursor:pointer;
+      outline:none; transition: background 0.18s ease;
+    }
+    summary:hover{ background:#f1f5f9; }
+    summary::-webkit-details-marker{ display:none; }
+
+    h2{
+      display:flex; justify-content:space-between; align-items:center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.28rem;
+    }
+    h2::after{
+      content:'->'; font-size:1.05rem; transition: transform .25s ease;
+      color:var(--muted);
+    }
+    details[open] h2::after{ transform: rotate(90deg); }
+
+    .content{ padding:0 30px 30px 30px; }
+    h3{
+      color:var(--secondary); margin:24px 0 10px; font-size:1.12rem;
+      border-bottom:1px solid var(--border); padding-bottom:6px;
+    }
+    h4{
+      margin:18px 0 8px; font-size:1rem; color:#0f172a;
+      font-weight:800;
+    }
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:14px 0;
+      font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:14px 14px; border-radius:10px;
+      margin:14px 0; overflow-x:auto; border:1px solid var(--border);
+    }
+    .interpretation{
+      background:#f8fafc; padding:14px; border-radius:10px;
+      border:1px dashed var(--secondary); margin:14px 0;
+    }
+    .interpretation b{ color:var(--secondary); }
+
+    .step-box{
+      border-left:3px solid var(--accent);
+      background:#fffcf5; padding:14px; margin:12px 0;
+      border-radius:0 10px 10px 0;
+    }
+    .pill{
+      display:inline-block; padding:2px 10px; border-radius:999px;
+      font-size:.86rem; font-weight:700; margin-left:8px;
+      background:#e2e8f0; color:#0f172a;
+      vertical-align:middle;
+    }
+    .pill.goal{ background:#dcfce7; color:#166534; }
+    .pill.key{ background:#ffedd5; color:#9a3412; }
+    .pill.eq{ background:#e0e7ff; color:#3730a3; }
+
+    ul{ margin:10px 0 10px 22px; }
+    ol{ margin:10px 0 10px 22px; }
+    li{ margin:6px 0; }
+    code.k{
+      background:#0b1220; color:#e5e7eb; padding:2px 7px;
+      border-radius:8px; font-size:.92em;
+    }
+    .footer{
+      text-align:center; color:var(--muted); font-size:.9rem; margin:36px 0;
+    }
+    .grid{
+      display:grid; grid-template-columns: 1fr; gap:10px;
+    }
+    @media (min-width: 920px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    .mini{
+      background:#ffffff; border:1px solid var(--border);
+      border-radius:12px; padding:12px 14px;
+    }
+    .mini b{ color:#0f172a; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1> Chapter 5: The Bias-Complexity Tradeoff - PART 1</h1>
+  </header>
+
+  <section>
+    <details open>
+      <summary><h2>0) 목표: 정리 5.1에서 뭘 보이려는가? <span class="pill goal">Goal</span></h2></summary>
+      <div class="content">
+        <div class="quote">
+          어떤 학습기 \(A\)라도, 어떤 분포 \(D\)에서는 정답 함수의 리스크가 0인데도 \(A\)는 꽤 자주 크게 틀린다.
+        </div>
+
+        <h3>핵심 중간목표 (식 5.1)</h3>
+        <div class="formula">
+          $$\boxed{
+          \max_{i\in[T]}\ \mathbb E_{S\sim D_i^m}\big[L_{D_i}(A(S))\big]\ \ge\ \frac14
+          }\tag{5.1}$$
+        </div>
+
+        <div class="interpretation">
+          <b>의미</b><br/>
+          특정 \(i\)를 택하면, 그 분포 \(D_i\)에서 표본 \(m\)개로 학습한 결과의 “기대 일반화오차”가 \(\frac14\) 이상이 된다.
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>1) 세팅: \(C, f_i, D_i\)를 왜 이렇게 만드나? <span class="pill key">Setup</span></h2></summary>
+      <div class="content">
+
+        <h3>(1) 작은 입력집합 \(C\subset\mathcal X\)</h3>
+        <div class="formula">
+          $$C\subset \mathcal X,\quad |C|=2m.$$
+        </div>
+        <ul>
+          <li>표본이 \(m\)개면 \(C\)의 모든 점을 다 볼 수 없게 설계(최소 절반은 미관측).</li>
+        </ul>
+
+        <h3>(2) 가능한 모든 라벨링 함수 \(f_i\)</h3>
+        <div class="formula">
+          $$f_i:C\to\{0,1\},\quad i=1,\dots,T,\quad T=2^{|C|}=2^{2m}.$$
+        </div>
+        <ul>
+          <li>\(C\) 위의 모든 “정답표(라벨링)”를 열거.</li>
+        </ul>
+
+        <h3>(3) 각 \(f_i\)에 맞는 분포 \(D_i\)</h3>
+        <div class="formula">
+          $$D_i(\{(x,y)\})=
+          \begin{cases}
+          \frac1{|C|} & y=f_i(x)\\[2mm]
+          0 & \text{otherwise}
+          \end{cases}$$
+        </div>
+        <ul>
+          <li>\(x\)는 \(C\)에서 균등, 라벨은 항상 \(y=f_i(x)\) (결정적).</li>
+          <li>따라서 정답 \(f_i\)는 완벽:</li>
+        </ul>
+        <div class="formula">
+          $$L_{D_i}(f_i)=0.$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>2) 큰 흐름: (5.3)→(5.4)→(5.5)→(5.6)로 (5.1) 증명 <span class="pill key">Flow</span></h2></summary>
+      <div class="content">
+
+        <div class="step-box">
+          <ol>
+            <li><b>(5.3)</b> 기대값을 “가능한 입력열 평균”으로 표현</li>
+            <li><b>(5.4)</b> \(\max \ge \text{avg} \ge \min\) 트릭으로 “하나의 입력열”로 고정</li>
+            <li><b>(5.5)(5.6)</b> “안 본 점”에서 평균적으로 \(\tfrac12\)은 틀릴 수밖에 없음을 하한으로 연결</li>
+            <li>결론: \(\tfrac14\)</li>
+          </ol>
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>3) (5.3): 기대값을 균등 평균으로 쓰기 <span class="pill eq">(5.3)</span></h2></summary>
+      <div class="content">
+
+        <h3>입력열과 표본의 표기</h3>
+        <ul>
+          <li>입력열: \(S_j=(x_1,\dots,x_m)\)</li>
+          <li>가능한 입력열 개수:</li>
+        </ul>
+        <div class="formula">
+          $$k=|C|^m=(2m)^m.$$
+        </div>
+        <ul>
+          <li>\(D_i\)에서 입력 \(x\)는 \(C\)의 균등이므로 모든 입력열이 같은 확률 \(1/k\).</li>
+          <li>\(S_j^i\): 입력열에 \(f_i\) 라벨을 붙인 훈련셋</li>
+        </ul>
+        <div class="formula">
+          $$S_j^i=\big((x_1,f_i(x_1)),\dots,(x_m,f_i(x_m))\big).$$
+        </div>
+
+        <h3>(5.3)</h3>
+        <div class="formula">
+          $$\boxed{
+          \mathbb E_{S\sim D_i^m}[L_{D_i}(A(S))]
+          =\frac1k\sum_{j=1}^k L_{D_i}(A(S_j^i))
+          }\tag{5.3}$$
+        </div>
+
+        <div class="interpretation">
+          <b>왜 성립?</b><br/>
+          \(S\sim D_i^m\)는 “\(C\)에서 균등 샘플링한 입력열 + 결정적 라벨”이므로,
+          기대값은 가능한 입력열들의 균등 평균으로 바뀐다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>4) (5.4): \(\max \ge \text{avg} \ge \min\)로 입력열 하나 고정 <span class="pill eq">(5.4)</span></h2></summary>
+      <div class="content">
+
+        <h3>시작: (5.1)의 좌변을 (5.3)로 치환</h3>
+        <div class="formula">
+          $$\max_{i\in[T]}\ \mathbb E_{S\sim D_i^m}[L_{D_i}(A(S))]
+          \;=\;
+          \max_{i\in[T]}\ \frac1k\sum_{j=1}^k L_{D_i}(A(S_j^i)).$$
+        </div>
+
+        <h3>1단계: \(\max \ge \text{avg}\)</h3>
+        <div class="formula">
+          $$\max_i a_i \ge \frac1T\sum_{i=1}^T a_i.$$
+        </div>
+        <div class="formula">
+          $$\max_{i}\frac1k\sum_j L_{D_i}(A(S_j^i))
+          \ge
+          \frac1T\sum_{i=1}^T\frac1k\sum_{j=1}^k L_{D_i}(A(S_j^i)).$$
+        </div>
+
+        <h3>2단계: 합 순서 교환(선형성)</h3>
+        <div class="formula">
+          $$=
+          \frac1k\sum_{j=1}^k\frac1T\sum_{i=1}^T L_{D_i}(A(S_j^i)).$$
+        </div>
+
+        <h3>3단계: \(\text{avg} \ge \min\)</h3>
+        <div class="formula">
+          $$\frac1k\sum_{j=1}^k b_j \ge \min_{j\in[k]} b_j.$$
+        </div>
+
+        <h3>(5.4)</h3>
+        <div class="formula">
+          $$\boxed{
+          \max_{i}\frac1k\sum_{j} L_{D_i}(A(S_j^i))
+          \ge
+          \min_{j\in[k]}\frac1T\sum_{i=1}^T L_{D_i}(A(S_j^i))
+          }\tag{5.4}$$
+        </div>
+
+        <div class="interpretation">
+          <b>의미</b><br/>
+          “최악의 \(i\)”를 직접 잡기보다, 입력열 \(S_j\) 하나를 고정한 뒤 그 입력열에 대해
+          라벨링 \(f_i\)들을 평균내서 하한을 잡는다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>5) 고정된 입력열 \(S_j\)에서 ‘안 본 입력’ 정의 <span class="pill key">Key</span></h2></summary>
+      <div class="content">
+
+        <h3>\(S_j=(x_1,\dots,x_m)\) 고정</h3>
+        <ul>
+          <li>\(S_j\)에서 등장한 서로 다른 입력 수는 최대 \(m\).</li>
+          <li>\(|C|=2m\)이므로, 관측되지 않은 입력은 최소 \(m\)개.</li>
+        </ul>
+
+        <h3>미관측 입력 집합</h3>
+        <div class="formula">
+          $$\{v_1,\dots,v_p\}=C\setminus\{x_1,\dots,x_m\},\qquad p\ge m.$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>6) (5.5): 전체 오차 ≥ 미관측 입력에서의 오차 <span class="pill eq">(5.5)</span></h2></summary>
+      <div class="content">
+
+        <h3>\(D_i\)가 \(C\)에서 균등이므로</h3>
+        <div class="formula">
+          $$L_{D_i}(h)
+          =\frac1{|C|}\sum_{x\in C}\mathbf 1[h(x)\neq f_i(x)]
+          =\frac1{2m}\sum_{x\in C}\mathbf 1[h(x)\neq f_i(x)].$$
+        </div>
+
+        <h3>미관측 부분만 남기면 하한</h3>
+        <div class="formula">
+          $$\ge \frac1{2m}\sum_{r=1}^{p}\mathbf 1[h(v_r)\neq f_i(v_r)].$$
+        </div>
+
+        <h3>\(p\ge m\)를 이용해 분모 정리</h3>
+        <div class="formula">
+          $$\frac1{2m}\ \ge\ \frac1{2p}\quad\Rightarrow\quad
+          \frac1{2m}\sum_{r=1}^{p}(\cdot)\ \ge\ \frac1{2p}\sum_{r=1}^{p}(\cdot).$$
+        </div>
+
+        <h3>(5.5)</h3>
+        <div class="formula">
+          $$\boxed{
+          L_{D_i}(h)\ge \frac1{2p}\sum_{r=1}^{p}\mathbf 1[h(v_r)\neq f_i(v_r)]
+          }\tag{5.5}$$
+        </div>
+
+        <div class="interpretation">
+          <b>다음에 할 일</b><br/>
+          이제 \(h=A(S_j^i)\)를 대입해서, “학습기가 못 본 점들에서 얼마나 틀리나”로 하한을 만든다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>7) (5.6): 평균과 min을 바꿔 ‘한 점’ \(v_r\)로 고정 <span class="pill eq">(5.6)</span></h2></summary>
+      <div class="content">
+
+        <h3>(5.5)에 \(h=A(S_j^i)\) 대입 후 \(i\)에 대해 평균</h3>
+        <div class="formula">
+          $$\frac1T\sum_{i=1}^T L_{D_i}(A(S_j^i))
+          \ge
+          \frac1T\sum_{i=1}^T \frac1{2p}\sum_{r=1}^p
+          \mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)].$$
+        </div>
+
+        <h3>상수/합 순서 교환</h3>
+        <div class="formula">
+          $$=
+          \frac1{2p}\sum_{r=1}^p \frac1T\sum_{i=1}^T
+          \mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)].$$
+        </div>
+
+        <h3>\(\text{avg} \ge \min\) 적용</h3>
+        <div class="formula">
+          $$\frac1{2p}\sum_{r=1}^p a_r
+          \ge
+          \frac1{2p}\cdot p\cdot \min_{r} a_r
+          =
+          \frac12 \min_{r} a_r.$$
+        </div>
+
+        <h3>(5.6)</h3>
+        <div class="formula">
+          $$\boxed{
+          \frac1T\sum_{i=1}^T L_{D_i}(A(S_j^i))
+          \ge
+          \frac12\cdot \min_{r\in[p]}\frac1T\sum_{i=1}^T
+          \mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)]
+          }\tag{5.6}$$
+        </div>
+
+        <div class="interpretation">
+          <b>의미</b><br/>
+          미관측 점이 여러 개여도, 그 중 하나 \(v_r\)에서 “평균적으로 얼마나 틀리는지”만 하한을 잡아도 된다.
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>8) 페어링으로 ‘평균 1/2’ 만들기 → \(\frac14\) <span class="pill key">Pairing</span></h2></summary>
+      <div class="content">
+
+        <h3>남은 목표</h3>
+        <div class="formula">
+          $$\forall r,\quad
+          \frac1T\sum_{i=1}^T \mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)] \ge \frac12.$$
+        </div>
+
+        <h3>페어링 논리</h3>
+        <ul>
+          <li>\(v_r\)를 고정.</li>
+          <li>모든 함수 \(f_i\)들을 다음 성질로 쌍 \((f_i,f_{i'})\)로 묶는다:</li>
+        </ul>
+        <div class="formula">
+          $$f_{i'}(x)=f_i(x)\ (x\neq v_r),\qquad f_{i'}(v_r)=1-f_i(v_r).$$
+        </div>
+
+        <h3>훈련셋이 동일해짐</h3>
+        <ul>
+          <li>\(S_j\)에는 \(v_r\)가 없으므로, \(S_j^i\)와 \(S_j^{i'}\)의 라벨은 완전히 동일:</li>
+        </ul>
+        <div class="formula">
+          $$S_j^i = S_j^{i'} \quad\Rightarrow\quad A(S_j^i)=A(S_j^{i'}).$$
+        </div>
+
+        <h3>하지만 정답은 \(v_r\)에서만 반대</h3>
+        <ul>
+          <li>동일한 예측값 \(A(S_j^i)(v_r)\)는 두 정답 중 하나에 반드시 틀림:</li>
+        </ul>
+        <div class="formula">
+          $$\mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)]
+          +\mathbf 1[A(S_j^{i'})(v_r)\neq f_{i'}(v_r)]
+          =1.$$
+        </div>
+
+        <h3>모든 \(i\)를 쌍으로 나누면 평균은 정확히 1/2</h3>
+        <div class="formula">
+          $$\frac1T\sum_{i=1}^T \mathbf 1[A(S_j^i)(v_r)\neq f_i(v_r)] = \frac12.$$
+        </div>
+
+        <h3>(5.6)에 대입</h3>
+        <div class="formula">
+          $$\frac1T\sum_{i=1}^T L_{D_i}(A(S_j^i))
+          \ge
+          \frac12\cdot\frac12
+          =
+          \frac14.$$
+        </div>
+
+        <h3>따라서 (5.4)→(5.3)로 되돌아가면 (5.1)</h3>
+        <div class="formula">
+          $$\boxed{
+          \max_{i\in[T]}\ \mathbb E_{S\sim D_i^m}\big[L_{D_i}(A(S))\big]\ \ge\ \frac14
+          }\tag{5.1}$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <section>
+    <details>
+      <summary><h2>9) (5.1) → (5.2)로 옮기는 한 줄 논리 <span class="pill key">Lift</span></h2></summary>
+      <div class="content">
+
+        <div class="quote">
+          (5.1)은 \(C\subset\mathcal X\) 위에서 만든 이야기. 분포 \(D\)를 \(C\)에만 질량을 두게 만들면,
+          동일한 하한이 \(\mathcal X\)에서도 그대로 성립한다.
+        </div>
+
+        <div class="formula">
+          $$\exists f:\mathcal X\to\{0,1\},\ \exists D,\quad
+          L_D(f)=0,\ \mathbb E_{S\sim D^m}[L_D(A'(S))]\ge \frac14.$$
+        </div>
+
+      </div>
+    </details>
+  </section>
+
+  <div class="footer">
+    &copy; 2026 Learning Theory Notes — Chapter 5
+  </div>
+</div>
+
+</body>
+</html>

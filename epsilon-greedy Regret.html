@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ε-greedy (time-varying εₜ) — Regret Bound Proof Note</title>
+
+  <!-- MathJax -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+    }
+    .container{max-width:1080px; margin:0 auto;}
+    header{
+      text-align:center; padding:50px 20px;
+      background:linear-gradient(135deg, var(--primary), var(--secondary));
+      color:#fff; border-radius:20px; margin-bottom:30px;
+    }
+    header h1{margin:0; font-size:2.2rem;}
+    header p{margin:10px 0 0; opacity:.9;}
+
+    section{
+      background:var(--card); padding:0; border-radius:15px;
+      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
+      border:1px solid var(--border); overflow:hidden;
+    }
+    details{width:100%}
+    summary{
+      list-style:none; padding:22px 28px; cursor:pointer;
+    }
+    summary::-webkit-details-marker{display:none}
+    summary:hover{background:#f1f5f9}
+
+    h2{
+      display:flex; justify-content:space-between; align-items:center;
+      color:var(--primary); border-left:5px solid var(--secondary);
+      padding-left:14px; margin:0; font-size:1.4rem;
+    }
+    h2::after{
+      content:'>'; color:var(--muted); transition:.3s;
+    }
+    details[open] h2::after{transform:rotate(90deg)}
+
+    .content{padding:0 30px 30px 30px}
+    h3{color:var(--secondary); margin:26px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px;}
+    h4{margin:18px 0 8px; font-weight:800; color:#0f172a}
+
+    .quote{
+      background:#eff6ff; border-left:4px solid var(--secondary);
+      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+    }
+    .formula{
+      background:#f1f5f9; padding:15px; border-radius:10px;
+      margin:15px 0; border:1px solid var(--border); overflow-x:auto;
+    }
+    .interpretation{
+      background:#f8fafc; padding:15px; border-radius:10px;
+      border:1px dashed var(--secondary); margin:15px 0;
+    }
+    .interpretation b{color:var(--secondary)}
+    .step-box{
+      border-left:3px solid var(--accent); background:#fffcf5;
+      padding:15px; margin:15px 0; border-radius:0 10px 10px 0;
+    }
+    .muted{color:var(--muted)}
+    .footer{
+      text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+<header>
+  <h1>ε-greedy Regret Bound</h1>
+  <p>시간가변 \(\varepsilon_t\) 사용 시 표준 상계 논증 (원문 문제 포맷 반영)</p>
+</header>
+
+<section>
+<details open>
+<summary><h2>증명 흐름: Explore + Exploit 분해 → Good Event → 적분 상계</h2></summary>
+<div class="content">
+
+<p class="quote">
+“핵심은 두 덩어리다: (1) 탐험이 만든 직접 regret \(\sum \varepsilon_t\),
+(2) 탐욕이 틀릴 때의 regret(=gap)가 ‘추정오차 두 개’로 눌린다는 사실.”
+</p>
+
+<h3>0) 준비: 표본평균, gap, regret</h3>
+<ul>
+  <li>
+    <b>표본평균:</b><br/>
+    $$
+    \hat\mu_{j,t}:=\frac{\sum_{\tau=1}^t r_{j,\tau}\mathbf 1(a_\tau=j)}
+    {\sum_{\tau=1}^t \mathbf 1(a_\tau=j)}
+    $$
+  </li>
+
+  <li>
+    <b>최적 arm:</b><br/>
+    $$ i^*=\arg\max_i \mu_i,\qquad \mu^*=\mu_{i^*} $$
+  </li>
+
+  <li>
+    <b>gap:</b><br/>
+    $$ \Delta_i:=\mu^*-\mu_i \quad \text{for } i\neq i^* $$
+  </li>
+
+  <li>
+    <b>누적 regret:</b><br/>
+    $$
+    R(T)=\sum_{t=1}^T(\mu^*-\mu_{a_t})
+    =\sum_{t=1}^T \Delta_{a_t}
+    $$
+  </li>
+</ul>
+
+<div class="interpretation">
+  <b>메모</b><br/>
+  문제(슬라이드)에서는 “처음 \(N\)번은 각 arm을 1번씩 뽑는다”를 기본으로 깔고,
+  그 비용을 상수 \(N\)으로 먼저 더해준다.
+</div>
+
+<h3>1) regret를 Explore + Exploit로 분해 </h3>
+
+<div class="step-box">
+  ε-greedy는 시간 \(t\)에<br/>
+  - 확률 \(\varepsilon_t\): explore (균등 랜덤)<br/>
+  - 확률 \(1-\varepsilon_t\): exploit (\(\arg\max_j \hat\mu_{j,t}\))
+</div>
+
+<p>
+보상/손실이 \([0,1]\) 범위라고 두면, 한 번의 선택으로 생길 수 있는 regret는 최대 1이므로
+explore로 인한 기대 regret는 \(\varepsilon_t\cdot 1\)로 상계된다.
+</p>
+
+<div class="formula">
+$$
+\mathbb E[R(T)]
+\le N + \sum_{t=N+1}^T \varepsilon_t
++\sum_{t=N+1}^T (1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\,
+\Pr\!\left(i=\arg\max_{j\in[N]}\hat\mu_{j,t}\right).
+$$
+</div>
+
+<div class="interpretation">
+  <b>여기서 중요한 건 “exploit 쪽”</b><br/>
+  exploit에서 suboptimal \(i\neq i^*\)가 선택되는 확률을 어떻게 제어하느냐가 핵심이며,
+  그게 다음의 “표본 수 하한 + Hoeffding”으로 이어진다.
+</div>
+
+<h3>2) 탐험이 만드는 표본 수 하한: \(\sum \mathbf 1(a_\tau=i)\) 제어</h3>
+
+<p>
+각 arm \(i\)의 누적 선택 횟수를
+</p>
+
+$$
+n_i(t):=\sum_{\tau=1}^t \mathbf 1(a_\tau=i)
+$$
+
+<p>
+라고 하자. exploit이 한 arm에 쏠리면 어떤 arm은 거의 뽑히지 않을 수 있으니,
+최악을 막는 장치가 explore(균등 랜덤)이다.
+</p>
+
+
+<div class="step-box">
+  <b>핵심 관찰</b><br/>
+  시간 \(\tau\)에 explore가 일어나면 arm \(i\)가 뽑힐 확률은 \(\frac1N\).<br/>
+  따라서 전체 확률로는 \(\Pr(a_\tau=i)\ge \varepsilon_\tau\cdot\frac1N\).
+</div>
+
+<div class="formula">
+$$
+\sum_{\tau=1}^t\mathbf 1(a_\tau=i)
+\ge \frac12\sum_{\tau=1}^t \Pr(a_\tau=i)
+\ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau.
+$$
+</div>
+
+<div class="interpretation">
+  <b>왜 “절반(1/2)”이 나오나?</b><br/>
+  \(\mathbf 1(a_\tau=i)\)는 베르누이들의 합이라 집중부등식(Chernoff 류)로
+  “실제 합이 기대합의 일정 비율(예: 1/2) 이상”임을 높은 확률로 보장할 수 있다.
+</div>
+
+<h3>3) 문제의 임계 구간: \(t\ge \frac{16}{\varepsilon_T}\log T\)</h3>
+
+<p>
+슬라이드에는 “모든 \(t\ge \frac{16}{\varepsilon_T}\log T\)에 대해 위 부등식이 동시에 성립” 같은 형태가 나오는데,
+이건 다음 두 가지 이유 때문이다.
+</p>
+
+<ul>
+  <li><b>이유 1</b>: \(t\)가 너무 작으면 \(\sum_{\tau\le t}\varepsilon_\tau\) 자체가 작아서 ‘표본 수 하한’이 약함</li>
+  <li><b>이유 2</b>: “모든 시간 \(t\)에 대해 동시에”를 만들려면 union bound가 들어가며 \(\log T\)가 필요</li>
+</ul>
+
+<div class="formula">
+$$
+\Pr\!\left(\bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
+\left\{\,\sum_{\tau=1}^t \mathbf 1(a_\tau=i)\ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau \right\}\right)
+\ge 1-\frac{1}{T}.
+$$
+</div>
+
+<div class="interpretation">
+  <b>포인트</b><br/>
+  여기서 \(1-\frac{1}{T}\) 같은 형태는 “시간축 전체에 대한 실패확률을 \(\frac1T\)로 맞추는” 전형적인 선택이다.
+  (상수 16은 해당 증명에서 Chernoff/union bound를 정리한 결과로 보면 된다.)
+</div>
+
+<h3>4) Hoeffding으로 표본평균 농도: 모든 \(t\)에 대한 동시 성립</h3>
+
+<p>
+보상이 \([0,1]\) 범위이면 (고정된 \(i,t\)에 대해)
+</p>
+
+$$
+\Pr\!\left(|\hat\mu_{i,t}-\mu_i|\ge x\right)
+\le 2\exp\!\left(-2n_i(t)x^2\right)
+$$
+
+<p>
+(Hoeffding)이고, 여기에 2)에서 얻은 \(n_i(t)\) 하한을 넣으면
+오차폭이 \(\sqrt{\frac{\log T}{\sum_{\tau\le t}\varepsilon_\tau}}\) 꼴로 나온다.
+</p>
+
+
+<div class="formula">
+$$
+\Pr\!\left(
+\bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
+\left\{\,|\hat\mu_{i,t}-\mu_i|
+\le \sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}\,\right\}
+\right)\ \ge\ 1-\frac{2}{T}.
+$$
+</div>
+
+<div class="interpretation">
+  <b>왜 실패확률이 \(\frac{2}{T}\)인가?</b><br/>
+  (i) Hoeffding 자체의 앞 상수 2,<br/>
+  (ii) 시간 \(t\)들에 대한 union bound 정리,<br/>
+  를 한 번에 묶으면 “대충 \(\frac{2}{T}\)” 꼴로 정리되는 구성이 흔하다.
+</div>
+
+<h3>5) exploit에서 suboptimal이 선택되면 gap을 오차 두 개로 누르기</h3>
+
+<p>
+exploit에서 \(i=\arg\max_j \hat\mu_{j,t}\)이고 \(i\neq i^*\)라면
+\(\hat\mu_{i,t}\ge \hat\mu_{i^*,t}\) 이다.
+이를 이용해
+</p>
+
+<div class="formula">
+$$
+\Delta_i=\mu^*-\mu_i
+= (\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i^*,t}-\mu_i)
+\le \big[(\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i,t}-\mu_i)\big].
+$$
+</div>
+
+<div class="step-box">
+  <b>중요한 한 줄</b><br/>
+  \(\hat\mu_{i^*,t}-\mu_i=(\hat\mu_{i^*,t}-\hat\mu_{i,t})+(\hat\mu_{i,t}-\mu_i)\le \hat\mu_{i,t}-\mu_i\)<br/>
+  (선택 조건 때문에 첫 항이 \(\le 0\))
+</div>
+
+<p>
+이제 4)의 농도 bound를 최적팔과 선택된 팔에 각각 적용하면
+</p>
+
+<div class="formula">
+$$
+\Delta_i
+\le \,2\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}.
+$$
+</div>
+
+<div class="interpretation">
+  <b>직관</b><br/>
+  “탐욕이 틀렸다”는 건 결국 (최적팔 과소평가) + (선택팔 과대평가) 중 무엇인가가 일어난 것인데,
+  good event에서는 두 오차가 모두 작아서 결과적으로 \(\Delta_i\) 자체가 작은 값으로 눌린다.
+</div>
+
+<h3>6) exploit-regret 합 상계: 임계 구간 분리 + 꼬리항</h3>
+
+<p>
+슬라이드가 하는 전형적인 정리는 다음과 같다.
+</p>
+
+<ul>
+  <li>\(t < \frac{16}{\varepsilon_T}\log T\) 구간은 “최악 상계”로 처리 → \(\frac{16}{\varepsilon_T}\log T\) 항</li>
+  <li>\(t \ge \frac{16}{\varepsilon_T}\log T\) 구간에서는 위의 \(\Delta_i\) 상계를 사용</li>
+</ul>
+
+<div class="formula">
+$$
+\sum_{t=N+1}^T(1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\Pr\!\left(i=\arg\max_j\hat\mu_{j,t}\right)
+\le \cdot 2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}
++\frac{16}{\varepsilon_T}\log T.
+$$
+</div>
+
+<h3>7) \(f(t)\)로 \(\sum_{\tau\le t}\varepsilon_\tau\)를 샌드위치</h3>
+
+<div class="formula">
+$$
+C_\ell f(t)\le \sum_{\tau=1}^t\varepsilon_\tau\le C_u f(t).
+$$
+</div>
+
+<div class="step-box">
+  <b>왜 이걸 하냐?</b><br/>
+  분석에 남는 건 \(\sum \varepsilon_t\)와 \(\sqrt{1/\sum_{\tau\le t}\varepsilon_\tau}\)뿐이라,
+  이를 “하나의 성장 함수 \(f\)”로 정리하면 적분으로 깔끔하게 닫힌다.
+</div>
+
+<div class="formula">
+$$
+\mathbb E[R(T)]
+\le N+\frac{16}{\varepsilon_T}\log T
++\,C_u f(T)
++\,2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{C_\ell f(t)}}.
+$$
+</div>
+
+<h3>8) 합을 적분으로 상계</h3>
+
+<p>
+\(f(t)\)가 증가함수이면 \(1/\sqrt{f(t)}\)는 감소함수이므로,
+\(\sum_{t=m}^T 1/\sqrt{f(t)}\)는 적분으로 상계할 수 있다.
+</p>
+
+<div class="formula">
+$$
+2\sum_{t\ge m}\sqrt{\frac{8N\log T}{C_\ell f(t)}}
+\ \le\
+\,\frac{4\sqrt{8N\log T}}{\sqrt{C_\ell}}
+\int_{m}^{T}\frac{dt}{\sqrt{f(t)}},
+\quad m=\frac{16}{\varepsilon_T}\log T.
+$$
+</div>
+
+<h3>9) \(f(t)\approx t^\alpha(N\log t)^\beta\)로 두 항 균형</h3>
+
+<p>
+상수들을 무시하고(슬라이드 표현처럼) \(f(t)\approx t^\alpha(N\log t)^\beta\)라 두면
+</p>
+
+<ul>
+  <li>탐험항: \(\sum_{t\le T}\varepsilon_t \approx f(T)\approx T^\alpha(N\log T)^\beta\)</li>
+  <li>적분항:
+$$
+\begin{aligned}
+\sqrt{N\log T}\int_{1}^{T} \frac{dt}{\sqrt{f(t)}}
+&\approx
+\sqrt{N\log T}\int_{1}^{T}
+t^{-\alpha/2}(N\log t)^{-\beta/2}\,dt \\
+&\approx
+T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}.
+\end{aligned}
+$$
+
+  </li>
+</ul>
+
+<div class="formula">
+$$
+\mathbb E[R(T)]
+\lesssim (H)\Big[
+T^\alpha(N\log T)^\beta
++T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}
+\Big].
+$$
+</div>
+
+<div class="step-box">
+  <b>최적 선택(균형 맞추기)</b><br/>
+  두 항의 \(T\) 지수와 \((N\log T)\) 지수를 각각 같게 맞추면
+  \(\alpha=\frac23,\ \beta=\frac13\)이 나온다.
+</div>
+
+<div class="formula">
+$$
+\alpha=\,\frac{2}{3},\qquad \beta=\,\frac{1}{3}.
+$$
+</div>
+
+<h3>10) 거의 최적 exploration 스케줄</h3>
+
+<p>
+\(\sum_{\tau\le t}\varepsilon_\tau \approx f(t)\)가 되게 하려면 보통
+\(\varepsilon_t\approx f'(t)\)로 잡는다.
+따라서 (로그 미분 잔항을 상수로 흡수하면)
+</p>
+
+<div class="formula">
+$$
+\varepsilon_t=\,t^{-1/3}(N\log t)^{1/3},\qquad
+f(t)=\,t^{2/3}(N\log t)^{1/3}.
+$$
+</div>
+
+<div class="interpretation">
+  <b>주의</b><br/>
+  실제 알고리즘 구현에서는 \(\varepsilon_t\le 1\)이 필요하므로
+  \(\varepsilon_t=\min\{1,\;c\,t^{-1/3}(N\log t)^{1/3}\}\) 같은 형태로 쓰는 경우가 많다.
+</div>
+
+<h3>11) 최종 결과 정리</h3>
+
+<div class="formula">
+$$
+\mathbb E[R(T)]
+\le N+\frac{16}{\varepsilon_T}\log T
++ C\,\,T^{2/3}N^{1/3}\log^{1/3}T.
+$$
+</div>
+
+<div class="interpretation">
+  <b>핵심 지배항</b><br/>
+  \(T^{2/3}(N\log T)^{1/3}
+  =T^{2/3}N^{1/3}\log^{1/3}T\)가
+  탐험/추정오차 항을 동시에 균형시킨 결과다.
+</div>
+
+
+</div>
+</details>
+</section>
+
+<div class="footer">
+  &copy; 2026 Bandit Proof Notes — ε-greedy Regret (time-varying εₜ)
+</div>
+
+</div>
+</body>
+</html>

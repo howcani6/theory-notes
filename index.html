@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Theory — Lecture Notes Index</title>
+
+  <style>
+    :root{
+      --primary:#2563eb; --secondary:#3b82f6; --accent:#f59e0b;
+      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
+      --muted:#64748b; --border:#e2e8f0;
+    }
+    *{box-sizing:border-box}
+    body{
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
+      background:var(--bg); color:var(--text); line-height:1.7;
+      margin:0; padding:22px;
+      display:flex; flex-direction:column; min-height:100vh;
+    }
+    .container{max-width:900px; margin:0 auto; width:100%;}
+
+    header{
+      text-align:center; padding:60px 22px;
+      background:linear-gradient(135deg,#1e3a8a,#2563eb);
+      color:#fff; border-radius:20px; margin-bottom:40px;
+      box-shadow:0 10px 25px -5px rgba(37,99,235,.4);
+    }
+    header h1{margin:0; font-size:2.5rem;}
+    header p{margin:12px 0 0; opacity:.9; font-size:1.1rem;}
+
+    .section{margin-bottom:48px;}
+    .section-title{
+      font-size:1.8rem; font-weight:700;
+      margin-bottom:20px; padding-left:14px;
+      border-left:6px solid var(--primary);
+    }
+
+    .chapter-list{display:grid; gap:20px;}
+
+    .chapter-card{
+      background:var(--card);
+      padding:24px 30px;
+      border-radius:18px;
+      text-decoration:none;
+      color:inherit;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      border:1px solid var(--border);
+      transition:all .3s ease;
+      box-shadow:0 4px 6px -1px rgba(0,0,0,.05);
+    }
+
+    .chapter-card:hover{
+      transform:translateY(-4px);
+      border-color:var(--secondary);
+      box-shadow:0 20px 25px -5px rgba(0,0,0,.1);
+    }
+
+    .chapter-info{display:flex; flex-direction:column;}
+    .chapter-number{
+      font-size:.85rem; font-weight:700;
+      color:var(--secondary); margin-bottom:4px;
+    }
+    .chapter-title{
+      font-size:1.35rem; font-weight:600;
+    }
+
+    .arrow-icon{
+      width:40px; height:40px;
+      background:#eff6ff;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:var(--primary);
+      flex-shrink:0;
+    }
+
+    .chapter-card:hover .arrow-icon{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .subchapter-list{
+      margin-top:14px;
+      padding-left:10px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .subchapter-list a{
+      font-size:.95rem;
+      color:#334155;
+      text-decoration:none;
+    }
+    .subchapter-list a:hover{
+      color:var(--primary);
+      text-decoration:underline;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <header>
+    <h1>Learning Theory Notes</h1>
+    <p>이론 · 증명 · 알고리즘 정리</p>
+  </header>
+
+  <!-- ===================== -->
+  <!-- Understanding ML -->
+  <!-- ===================== -->
+  <section class="section">
+    <div class="section-title">Understanding Machine Learning</div>
+
+    <div class="chapter-list">
+      <a href="chapter2.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 02</span>
+          <span class="chapter-title">A Gentle Start (ERM & Generalization)</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="chapter3.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 03</span>
+          <span class="chapter-title">PAC Learning & General Model</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="chapter4.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 04</span>
+          <span class="chapter-title">Uniform Convergence</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Chapter 05 (Grouped) ===== -->
+      <div class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 05</span>
+          <span class="chapter-title">Error Decomposition & Tradeoff</span>
+
+          <div class="subchapter-list">
+            <a href="chapter5-1.html">5-1. The Bias-Complexity Tradeoff</a>
+            <a href="chapter5-2.html">5-2. Error Decomposition</a>
+            <a href="chapter5-3.html">5-3. UCB, ADV, PAC, NFL</a>
+            <a href="chapter5-4.html">5-4. EXAMPLE</a>
+          </div>
+        </div>
+        <div class="arrow-icon">→</div>
+      </div>
+
+      <!-- ===== Chapter 06 (Grouped) ===== -->
+      <div class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 06</span>
+          <span class="chapter-title">VC Dimension</span>
+
+          <div class="subchapter-list">
+            <a href="6. VC dimension.pdf" target="_blank">6-1. VC dimension</a>
+            <a href="6. VC dimension 2.pdf" target="_blank">6-2. VC dimension 2</a>
+            <a href="6. VC dimension 3.pdf" target="_blank">6-3. VC dimension 3</a>
+            <a href="6. VC dimension exercise.pdf" target="_blank">6-4. VC dimension exercise</a>
+          </div>
+        </div>
+        <div class="arrow-icon">→</div>
+      </div>
+
+      <!-- ===== Chapter 07 (Grouped) ===== -->
+      <div class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 07</span>
+          <span class="chapter-title">Nonuniform Learnability</span>
+
+          <div class="subchapter-list">
+            <a href="7. Nonuniform Learnability.pdf" target="_blank">7. Nonuniform Learnability</a>
+            <a href="7. Nonuniform Learnability exercise.pdf" target="_blank">7. Nonuniform Learnability exercise</a>
+          </div>
+        </div>
+        <div class="arrow-icon">→</div>
+      </div>
+
+      <!-- ===== Chapter 08 ===== -->
+      <a href="8. The runtime of learning (np hard).pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Chapter 08</span>
+          <span class="chapter-title">The Runtime of Learning (NP-Hardness)</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <div class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Additional</span>
+          <span class="chapter-title">Additional Chapter</span>
+
+          <div class="subchapter-list">
+            <a href="additional least square.pdf" target="_blank">Least Square</a>
+            <a href="14. Foundations of Information Theory 2.pdf" target="_blank">Foundations of Information Theory</a>
+          </div>
+        </div>
+        <div class="arrow-icon">→</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===================== -->
+  <!-- Bandit Algorithms -->
+  <!-- ===================== -->
+  <section class="section">
+    <div class="section-title">Bandit Algorithms</div>
+
+    <div class="chapter-list">
+      <a href="epsilon-greedy Regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 01</span>
+          <span class="chapter-title">ε-Greedy Regret Analysis</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="UCB.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 02</span>
+          <span class="chapter-title">UCB Algorithm</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="UCB regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 03</span>
+          <span class="chapter-title">UCB Regret Analysis</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="ADV setting.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 04</span>
+          <span class="chapter-title">Adversarial Bandit Setting</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="full information Regret.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 05</span>
+          <span class="chapter-title">Full-Information Regret</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <a href="EXP3 REGRET.html" class="chapter-card">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 06</span>
+          <span class="chapter-title">EXP3 Regret (Adversarial Bandits)</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Bandit 12 ===== -->
+      <a href="12. The EXP-IX Algorithm.pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 7</span>
+          <span class="chapter-title">The EXP-IX Algorithm</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Bandit 14 ===== -->
+      <a href="14. Foundations of Information Theory.pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 8</span>
+          <span class="chapter-title">Foundations of Information Theory</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Bandit 15 ===== -->
+      <a href="15. Minimax Lower Bounds.pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 9</span>
+          <span class="chapter-title">Minimax Lower Bounds</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Bandit 18 ===== -->
+      <a href="18. Contextual Bandits.pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Bandit 10</span>
+          <span class="chapter-title">Contextual Bandits</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+      <!-- ===== Additional ===== -->
+      <a href="additional UCB.pdf" class="chapter-card" target="_blank">
+        <div class="chapter-info">
+          <span class="chapter-number">Additional</span>
+          <span class="chapter-title">Additional UCB</span>
+        </div>
+        <div class="arrow-icon">→</div>
+      </a>
+
+    </div>
+  </section>
+
+</div>
+</body>
+</html>
