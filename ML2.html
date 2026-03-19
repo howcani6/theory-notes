@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Machine Learning Chapter 2</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --secondary:#3b82f6;
+      --accent:#f59e0b;
+      --bg:#f8fafc;
+      --bg-soft:#eef4ff;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --warn-bg:#fff7ed;
+      --warn-border:#fed7aa;
+      --shadow-sm:0 4px 10px rgba(15,23,42,.05);
+      --shadow-md:0 14px 30px rgba(15,23,42,.08);
+      --radius-lg:24px;
+      --radius-md:18px;
+      --radius-sm:12px;
+      --sidebar-width:290px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);
+      color:var(--text);
+      line-height:1.72;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    .layout{
+      display:grid;
+      grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      padding:22px 18px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);
+    }
+
+    .sidebar h2{
+      margin:0 0 8px;
+      font-size:1.15rem;
+      color:var(--primary-dark);
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .sidebar p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .search-box{
+      position:relative;
+      margin-bottom:18px;
+    }
+
+    .search-box span{
+      position:absolute;
+      left:14px;
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .search-box input{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 14px 12px 40px;
+      font-size:.95rem;
+      outline:none;
+      background:#fff;
+    }
+
+    .search-box input:focus{
+      border-color:#93c5fd;
+      box-shadow:0 0 0 4px rgba(59,130,246,.12);
+    }
+
+    .side-group{margin-bottom:18px}
+    .side-label{
+      margin:0 0 10px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .side-links{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .mini-link{
+      display:block;
+      padding:9px 10px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:.9rem;
+      transition:.2s ease;
+    }
+
+    .mini-link:hover,
+    .mini-link.active{
+      background:#eff6ff;
+      color:var(--primary-dark);
+      border-color:#cfe0ff;
+    }
+
+    .content{
+      min-width:0;
+      padding:22px 28px 60px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:38px 30px;
+      border-radius:30px;
+      background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(37,99,235,.22);
+      margin-bottom:22px;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .hero::before{width:220px;height:220px;top:-90px;right:-40px}
+    .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
+
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{margin:0;font-size:2.15rem;line-height:1.12;letter-spacing:-.02em}
+    .hero p{margin:10px 0 0;opacity:.94}
+
+    .top-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:26px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .summary-card .label{
+      font-size:.8rem;
+      color:var(--muted);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .summary-card .value{
+      margin-top:6px;
+      font-size:1rem;
+      font-weight:760;
+      line-height:1.5;
+    }
+
+    .main-grid{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 300px;
+      gap:22px;
+      align-items:start;
+    }
+
+    .article{min-width:0}
+
+    .toc-card,
+    .concept-card,
+    .section-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .toc-card{
+      position:sticky;
+      top:22px;
+      padding:18px;
+    }
+
+    .toc-title{
+      margin:0 0 12px;
+      font-size:1rem;
+      font-weight:820;
+      color:var(--primary-dark);
+    }
+
+    .toc-list{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .toc-link{
+      display:block;
+      padding:10px 12px;
+      border-radius:12px;
+      font-size:.93rem;
+      color:var(--muted);
+      border:1px solid #edf2f7;
+      background:#fff;
+      transition:.2s ease;
+    }
+
+    .toc-link:hover,
+    .toc-link.active{
+      background:#eff6ff;
+      border-color:#bfdbfe;
+      color:var(--primary-dark);
+      font-weight:700;
+    }
+
+    .concept-card{
+      padding:18px 20px;
+      margin-bottom:18px;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .concept-card h3{
+      margin:0 0 10px;
+      color:var(--primary-dark);
+      font-size:1.08rem;
+    }
+
+    .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:.84rem;
+      font-weight:700;
+      color:#0f172a;
+    }
+
+    .section-card{
+      overflow:hidden;
+      margin-bottom:18px;
+      scroll-margin-top:24px;
+    }
+
+    .section-head{
+      padding:24px 26px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .section-kicker{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--secondary);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:1.42rem;
+      font-weight:820;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+
+    .section-title::before{
+      content:"";
+      width:7px;
+      height:28px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--primary),var(--secondary));
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .section-body{padding:22px 28px 28px}
+    .section-body > :first-child{margin-top:0}
+
+    h3{
+      margin:22px 0 10px;
+      font-size:1.12rem;
+      color:var(--secondary);
+    }
+
+    h4{
+      margin:18px 0 8px;
+      font-size:1rem;
+      color:#0f172a;
+    }
+
+    p{margin:10px 0}
+    ul{margin:10px 0 0 20px;padding:0}
+    li{margin:6px 0}
+
+    .quote,
+    .note,
+    .warn,
+    .summary-box{
+      border-radius:16px;
+      padding:16px 18px;
+      margin:16px 0;
+    }
+
+    .quote{
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      font-style:italic;
+    }
+
+    .note{
+      background:#f8fafc;
+      border:1px solid var(--border);
+    }
+
+    .warn{
+      background:var(--warn-bg);
+      border:1px solid var(--warn-border);
+      color:#9a3412;
+      font-weight:600;
+    }
+
+    .summary-box{
+      background:var(--success-bg);
+      border:1px solid var(--success-border);
+    }
+
+    .formula{
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      margin:16px 0;
+      overflow-x:auto;
+    }
+
+    .highlight{
+      background:#fef3c7;
+      padding:4px 8px;
+      border-radius:8px;
+      font-weight:800;
+    }
+
+    .muted{color:var(--muted)}
+    .good{color:#16a34a;font-weight:800}
+    .bad{color:#dc2626;font-weight:800}
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .mini-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      background:#fff;
+    }
+
+    .step{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px 18px;
+      margin:12px 0;
+      background:#fff;
+      box-shadow:0 2px 6px rgba(15,23,42,.03);
+    }
+
+    .step-title{
+      margin:0 0 10px;
+      font-size:1rem;
+      font-weight:800;
+      color:var(--primary-dark);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:16px 0;
+      overflow:hidden;
+      border-radius:14px;
+    }
+
+    th,td{
+      padding:12px;
+      border:1px solid var(--border);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fafc;
+      color:var(--primary-dark);
+    }
+
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:28px;
+    }
+
+    [data-hidden="true"]{display:none !important}
+
+    @media (max-width:1100px){
+      .main-grid{grid-template-columns:1fr}
+      .toc-card{position:static}
+    }
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:static;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+      }
+      .content{padding:18px 16px 48px}
+    }
+
+    @media (max-width:760px){
+      .top-summary{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .hero{padding:30px 22px}
+      .hero h1{font-size:1.85rem}
+      .section-head{padding:20px 20px 14px}
+      .section-body{padding:18px 20px 22px}
+      .section-title{font-size:1.2rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Machine Learning</h2>
+      <p>Chapter 2 정리</p>
+
+      <div class="search-box">
+        <span>🔍</span>
+        <input id="searchInput" type="text" placeholder="개념 검색..." />
+      </div>
+
+      <div class="side-group">
+        <div class="side-label">Reading Map</div>
+        <div class="side-links">
+          <a class="mini-link" href="#supervised">Supervised Learning</a>
+          <a class="mini-link" href="#hypothesis">Hypothesis Class</a>
+          <a class="mini-link" href="#loss">Loss Function</a>
+          <a class="mini-link" href="#risk">True Risk</a>
+          <a class="mini-link" href="#erm">ERM</a>
+          <a class="mini-link" href="#generalization">Generalization</a>
+          <a class="mini-link" href="#excess">Excess Risk</a>
+          <a class="mini-link" href="#decomposition">Error Decomposition</a>
+          <a class="mini-link" href="#complexity">Model Complexity</a>
+          <a class="mini-link" href="#augmentation">Data Augmentation</a>
+          <a class="mini-link" href="#vicinal">Vicinal Risk Minimization</a>
+          <a class="mini-link" href="#additional">Additional Concepts</a>
+        </div>
+      </div>
+
+      <div class="side-group">
+        <div class="side-label">핵심 개념</div>
+        <div class="side-links">
+          <a class="mini-link" href="#supervised">\(D=\{(x_i,y_i)\}\)</a>
+          <a class="mini-link" href="#hypothesis">\(\mathcal H\)</a>
+          <a class="mini-link" href="#loss">\(\ell(y,h(x))\)</a>
+          <a class="mini-link" href="#risk">\(R(h)\)</a>
+          <a class="mini-link" href="#erm">\(\hat h_{\mathcal H}\)</a>
+          <a class="mini-link" href="#generalization">generalization gap</a>
+          <a class="mini-link" href="#decomposition">estimation vs approximation</a>
+          <a class="mini-link" href="#vicinal">\(R_v(h)\)</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>Machine Learning Chapter 2</h1>
+          <p>지도학습 → 가설공간 → 손실함수 → 위험 → ERM → 일반화 → 오류분해 → 데이터 증강</p>
+        </div>
+      </header>
+
+      <section class="top-summary">
+        <div class="summary-card">
+          <div class="label">Core Goal</div>
+          <div class="value">보지 않은 데이터에서도 잘 작동하는 예측 함수를 학습하는 것</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Tool</div>
+          <div class="value">True risk 대신 empirical risk를 최소화하는 ERM</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Issue</div>
+          <div class="value">훈련오차만 낮추면 과적합이 발생할 수 있음</div>
+        </div>
+      </section>
+
+      <div class="main-grid">
+        <article class="article">
+
+          <div class="concept-card searchable">
+            <h3>한 줄 큰 그림</h3>
+            <div class="chip-wrap">
+              <span class="chip">데이터 \(D=\{(x_i,y_i)\}\)</span>
+              <span class="chip">가설공간 \(\mathcal H\)</span>
+              <span class="chip">손실 \(\ell(y,h(x))\)</span>
+              <span class="chip">True risk \(R(h)\)</span>
+              <span class="chip">Empirical risk</span>
+              <span class="chip">ERM</span>
+              <span class="chip">Generalization</span>
+              <span class="chip">Approximation vs Estimation</span>
+            </div>
+          </div>
+
+          <section class="section-card searchable" id="supervised">
+            <div class="section-head">
+              <div class="section-kicker">Section 1</div>
+              <h2 class="section-title">Supervised Learning</h2>
+            </div>
+            <div class="section-body">
+              <p>지도학습에서는 입력과 정답 라벨이 함께 주어진 데이터셋으로부터 예측 함수를 학습한다.</p>
+
+              <h3>Dataset</h3>
+              <div class="formula">
+                $$
+                D=\{(x_1,y_1),\dots,(x_n,y_n)\}
+                $$
+              </div>
+
+              <ul>
+                <li>\(x_i\in\mathbb R^d\): feature vector</li>
+                <li>\(y_i\): label</li>
+                <li>\((x_i,y_i)\sim P_{XY}\): unknown data distribution</li>
+              </ul>
+
+              <h3>Goal</h3>
+              <p>보지 않은 데이터에 대해서도 잘 예측하는 함수를 학습하는 것이 목표다.</p>
+              <div class="formula">
+                $$
+                h:X\rightarrow Y
+                $$
+                $$
+                h(x)\approx y
+                $$
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="hypothesis">
+            <div class="section-head">
+              <div class="section-kicker">Section 2</div>
+              <h2 class="section-title">Hypothesis Class</h2>
+            </div>
+            <div class="section-body">
+              <p>학습자는 모든 가능한 함수를 탐색하지 않고, 미리 정한 함수 집합 안에서만 해를 찾는다.</p>
+
+              <div class="formula">
+                $$
+                h\in\mathcal H
+                $$
+              </div>
+
+              <h3>Examples</h3>
+              <ul>
+                <li>linear models</li>
+                <li>decision trees</li>
+                <li>neural networks</li>
+              </ul>
+
+              <div class="note">
+                \(\mathcal H\)의 선택은 모델의 표현력과 복잡도를 결정한다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="loss">
+            <div class="section-head">
+              <div class="section-kicker">Section 3</div>
+              <h2 class="section-title">Loss Function</h2>
+            </div>
+            <div class="section-body">
+              <p>손실 함수는 예측이 얼마나 틀렸는지를 수치화한다.</p>
+
+              <div class="formula">
+                $$
+                \ell(y,h(x))
+                $$
+              </div>
+
+              <h3>Zero-One Loss</h3>
+              <div class="formula">
+                $$
+                \ell(y,h(x))=
+                \begin{cases}
+                0, & h(x)=y,\\
+                1, & h(x)\neq y.
+                \end{cases}
+                $$
+              </div>
+              <p class="muted">분류 문제에서 자주 사용된다.</p>
+
+              <h3>Squared Loss</h3>
+              <div class="formula">
+                $$
+                \ell(y,h(x))=(h(x)-y)^2
+                $$
+              </div>
+              <p class="muted">회귀 문제에서 자주 사용된다.</p>
+
+              <div class="formula">
+                $$
+                \arg\min_c \mathbb E[(c-y)^2]=\mathbb E[y]
+                $$
+              </div>
+
+              <h3>Absolute Loss</h3>
+              <div class="formula">
+                $$
+                \ell(y,h(x))=|h(x)-y|
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                \arg\min_c \mathbb E|c-y|=\operatorname{median}(y)
+                $$
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="risk">
+            <div class="section-head">
+              <div class="section-kicker">Section 4</div>
+              <h2 class="section-title">True Risk</h2>
+            </div>
+            <div class="section-body">
+              <p>True risk는 데이터 분포 전체에 대한 평균 손실이다. 이것이 진짜 성능을 나타낸다.</p>
+
+              <div class="formula">
+                $$
+                R(h)=\mathbb E_{(x,y)\sim P_{XY}}[\ell(y,h(x))]
+                $$
+              </div>
+
+              <h3>Learning objective</h3>
+              <div class="formula">
+                $$
+                h^*=\arg\min_{h:X\to Y}R(h)
+                $$
+              </div>
+
+              <div class="warn">
+                하지만 실제로는 \(P_{XY}\)를 모르기 때문에 \(R(h)\)를 직접 계산할 수 없다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="erm">
+            <div class="section-head">
+              <div class="section-kicker">Section 5</div>
+              <h2 class="section-title">Empirical Risk Minimization (ERM)</h2>
+            </div>
+            <div class="section-body">
+              <p>True risk를 직접 구할 수 없으므로, 훈련 데이터에서 계산 가능한 empirical risk를 대신 최소화한다.</p>
+
+              <div class="formula">
+                $$
+                L(h;D)=\frac{1}{n}\sum_{i=1}^{n}\ell(y_i,h(x_i))
+                $$
+              </div>
+
+              <div class="quote">
+                ERM은 “데이터에서 평균적으로 가장 덜 틀리는 모델을 고르자”는 원리다.
+              </div>
+
+              <div class="formula">
+                $$
+                \hat h_{\mathcal H}=\arg\min_{h\in\mathcal H}L(h;D)
+                $$
+              </div>
+
+              <h3>Law of Large Numbers</h3>
+              <div class="formula">
+                $$
+                L(h;D)\to R(h)\qquad(n\to\infty)
+                $$
+              </div>
+
+              <p>표본 수가 충분히 크면 empirical risk가 true risk를 잘 근사하게 된다.</p>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="generalization">
+            <div class="section-head">
+              <div class="section-kicker">Section 6</div>
+              <h2 class="section-title">Generalization</h2>
+            </div>
+            <div class="section-body">
+              <h3>Training error</h3>
+              <div class="formula">
+                $$
+                L(h;D)
+                $$
+              </div>
+
+              <h3>True error</h3>
+              <div class="formula">
+                $$
+                R(h)
+                $$
+              </div>
+
+              <p>좋은 모델은 훈련 오차와 진짜 오차가 비슷해야 한다.</p>
+
+              <div class="formula">
+                $$
+                L(h;D)\approx R(h)
+                $$
+              </div>
+
+              <p>과적합은 훈련 오차는 매우 작은데 실제 오차는 큰 경우다.</p>
+
+              <div class="formula">
+                $$
+                L(h;D)\ll R(h)
+                $$
+              </div>
+
+              <div class="summary-box">
+                일반화란 훈련 데이터에서 잘 맞는 것에 그치지 않고, 새로운 데이터에서도 잘 맞는 능력을 뜻한다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="excess">
+            <div class="section-head">
+              <div class="section-kicker">Section 7</div>
+              <h2 class="section-title">Excess Risk</h2>
+            </div>
+            <div class="section-body">
+              <p>최적의 예측기와 비교했을 때 현재 모델이 얼마나 더 손해를 보는지를 excess risk라고 한다.</p>
+
+              <div class="formula">
+                $$
+                R^*=\inf_{h:X\to Y}R(h)
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                R(\hat h_{\mathcal H})-R^*
+                $$
+              </div>
+
+              <p>이 값이 작을수록 학습된 모델이 이상적인 최적 예측기에 가깝다.</p>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="decomposition">
+            <div class="section-head">
+              <div class="section-kicker">Section 8</div>
+              <h2 class="section-title">Error Decomposition</h2>
+            </div>
+            <div class="section-body">
+              <p>전체 오차는 보통 estimation error와 approximation error로 분해해서 본다.</p>
+
+              <div class="formula">
+                $$
+                R_{\mathcal H}^*=\inf_{h\in\mathcal H}R(h)
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                R(\hat h_{\mathcal H})-R^*
+                =
+                \bigl(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\bigr)
+                +
+                \bigl(R_{\mathcal H}^*-R^*\bigr)
+                $$
+              </div>
+
+              <div class="grid2">
+                <div class="mini-card">
+                  <h4>Estimation Error</h4>
+                  <div class="formula">
+                    $$
+                    R(\hat h_{\mathcal H})-R_{\mathcal H}^*
+                    $$
+                  </div>
+                  <ul>
+                    <li>finite training data</li>
+                    <li>sampling noise</li>
+                  </ul>
+                  <p class="good">데이터가 많아질수록 감소</p>
+                </div>
+
+                <div class="mini-card">
+                  <h4>Approximation Error</h4>
+                  <div class="formula">
+                    $$
+                    R_{\mathcal H}^*-R^*
+                    $$
+                  </div>
+                  <ul>
+                    <li>모델 클래스의 표현력 한계</li>
+                  </ul>
+                  <p class="bad">데이터가 늘어도 직접 줄지 않음</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="complexity">
+            <div class="section-head">
+              <div class="section-kicker">Section 9</div>
+              <h2 class="section-title">Model Complexity</h2>
+            </div>
+            <div class="section-body">
+              <p>가설공간의 크기는 approximation error와 estimation error 사이의 trade-off를 만든다.</p>
+
+              <ul>
+                <li>larger \(\mathcal H\) \(\Rightarrow\) smaller approximation error</li>
+                <li>larger \(\mathcal H\) \(\Rightarrow\) larger estimation error</li>
+              </ul>
+
+              <h3>Underfitting</h3>
+              <div class="formula">
+                $$
+                \text{approximation error is large}
+                $$
+              </div>
+
+              <h3>Overfitting</h3>
+              <div class="formula">
+                $$
+                \text{estimation error is large}
+                $$
+              </div>
+
+              <div class="summary-box">
+                모델이 너무 단순하면 underfitting, 너무 복잡하면 overfitting 위험이 커진다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="augmentation">
+            <div class="section-head">
+              <div class="section-kicker">Section 10</div>
+              <h2 class="section-title">Data Augmentation</h2>
+            </div>
+            <div class="section-body">
+              <p>데이터 증강은 기존 데이터에 의미를 유지하는 변형을 적용하여 새로운 학습 샘플처럼 활용하는 방법이다.</p>
+
+              <h3>Examples</h3>
+              <ul>
+                <li>rotation</li>
+                <li>translation</li>
+                <li>flipping</li>
+                <li>cropping</li>
+                <li>noise injection</li>
+              </ul>
+
+              <h3>Key principle</h3>
+              <div class="formula">
+                $$
+                \text{semantic invariance}
+                $$
+              </div>
+
+              <div class="note">
+                변형 이후에도 클래스 라벨이 유지되어야 한다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="vicinal">
+            <div class="section-head">
+              <div class="section-kicker">Section 11</div>
+              <h2 class="section-title">Vicinal Risk Minimization</h2>
+            </div>
+            <div class="section-body">
+              <p>관측된 점들만 보는 것이 아니라, 각 점 주변 이웃까지 포함해서 손실을 줄이려는 관점이다.</p>
+
+              <div class="formula">
+                $$
+                R_v(h)
+                =
+                \frac{1}{n}\sum_{i=1}^{n}
+                \mathbb E_{\epsilon}\!\left[\ell\bigl(y_i,h(x_i+\epsilon)\bigr)\right]
+                $$
+              </div>
+
+              <p>이 방식은 데이터 분포를 더 부드럽게 근사하는 데 도움을 준다.</p>
+
+              <div class="quote">
+                Data augmentation은 실제로 vicinal risk minimization을 구현하는 한 방식으로 볼 수 있다.
+              </div>
+            </div>
+          </section>
+
+          <section class="section-card searchable" id="additional">
+            <div class="section-head">
+              <div class="section-kicker">Section 12</div>
+              <h2 class="section-title">Additional Concepts</h2>
+            </div>
+            <div class="section-body">
+              <p>이 부분은 앞에서 나온 내용을 통계적 관점에서 다시 정리하는 섹션이다.</p>
+
+              <h3>1) True Objective vs. Empirical Objective</h3>
+              <p>학습의 진짜 목표는 훈련셋에서 잘 맞는 것이 아니라 새로운 데이터에서도 잘 예측하는 것이다.</p>
+
+              <div class="formula">
+                $$
+                S=((x_1,y_1),\dots,(x_m,y_m)),\qquad
+                h:\mathcal X\to\mathcal Y
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                L_{\mathcal D,f}(h)=\mathbb P_{x\sim\mathcal D}[h(x)\neq f(x)]
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                R(h)=\mathbb E_{(x,y)\sim P}\big[\ell(y,h(x))\big]
+                $$
+              </div>
+
+              <h3>2) Why We Cannot Minimize the True Risk Directly</h3>
+              <ul>
+                <li>분포 \(\mathcal D\) 또는 \(P\)를 모름</li>
+                <li>target function \(f\)를 모름</li>
+              </ul>
+
+              <div class="formula">
+                $$
+                L_{\mathcal D,f}(h)
+                \qquad\text{or}\qquad
+                R(h)
+                $$
+              </div>
+
+              <p>따라서 표본으로 계산 가능한 양을 대신 써야 한다.</p>
+
+              <h3>3) Empirical Risk as a Sample Average</h3>
+              <div class="formula">
+                $$
+                L_S(h)=\frac{|\{i\in[m]:h(x_i)\neq y_i\}|}{m}
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                L_S(h)=\frac{1}{m}\sum_{i=1}^m \mathbf 1\{h(x_i)\neq y_i\}
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                \widehat R_S(h)=\frac{1}{m}\sum_{i=1}^m \ell(y_i,h(x_i))
+                $$
+              </div>
+
+              <div class="note">
+                empirical risk는 sample average, true risk는 population average다.
+              </div>
+
+              <h3>4) Why the Sample Average is Reasonable</h3>
+              <div class="formula">
+                $$
+                Z_i:=\ell(y_i,h(x_i))
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                \widehat R_S(h)=\frac{1}{m}\sum_{i=1}^m Z_i
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                \mathbb E[\widehat R_S(h)]
+                =
+                \frac{1}{m}\sum_{i=1}^m \mathbb E[Z_i]
+                =
+                R(h)
+                $$
+              </div>
+
+              <p>즉 empirical risk는 true risk의 unbiased estimator다.</p>
+
+              <h3>5) Law of Large Numbers and ERM</h3>
+              <div class="formula">
+                $$
+                \widehat R_S(h)\to R(h)\qquad\text{as }m\to\infty
+                $$
+              </div>
+
+              <p>샘플 수가 커질수록 sample average가 population average에 가까워진다.</p>
+
+              <h3>6) ERM Reinterpreted</h3>
+              <div class="formula">
+                $$
+                \mathrm{ERM}_{\mathcal H}(S)\in\arg\min_{h\in\mathcal H}L_S(h)
+                $$
+              </div>
+
+              <div class="quote">
+                unknown true risk를 직접 최소화할 수 없으므로, sample-based approximation을 최소화한다.
+              </div>
+
+              <div class="formula">
+                $$
+                \min_{h\in\mathcal H}R(h)
+                \qquad\longrightarrow\qquad
+                \min_{h\in\mathcal H}\widehat R_S(h)
+                $$
+              </div>
+
+              <h3>7) Training Error and Generalization Error</h3>
+              <p>훈련 오차가 작다고 해서 반드시 진짜 오차가 작은 것은 아니다.</p>
+
+              <div class="formula">
+                $$
+                h_S(x)=
+                \begin{cases}
+                y_i, & \text{if } x=x_i \text{ for some } i,\\
+                0, & \text{otherwise}.
+                \end{cases}
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                L_S(h_S)=0
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                \text{small training error}\;\not\Rightarrow\;\text{small true error}
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                L_S(h)-L_{\mathcal D,f}(h)
+                \qquad\text{or}\qquad
+                \widehat R_S(h)-R(h)
+                $$
+              </div>
+
+              <p>이 차이를 generalization gap이라고 부른다.</p>
+
+              <h3>8) Why the Hypothesis Class Must Be Restricted</h3>
+              <div class="formula">
+                $$
+                \mathcal H\subset\{h:\mathcal X\to\mathcal Y\}
+                $$
+              </div>
+
+              <p>모든 함수를 허용하면 ERM은 훈련셋을 외워버리는 규칙을 선택할 수 있다. 그래서 의미 있는 구조적 제한이 필요하다.</p>
+
+              <ul>
+                <li>axis-aligned rectangles</li>
+                <li>linear classifiers</li>
+                <li>bounded-depth trees</li>
+              </ul>
+
+              <h3>9) Statistical Meaning of the Finite \(\mathcal H\) Result</h3>
+              <div class="formula">
+                $$
+                m\ge \frac{\log(|\mathcal H|/\delta)}{\varepsilon}
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                L_{\mathcal D,f}(h_S)\le \varepsilon
+                $$
+              </div>
+
+              <p>표본 복잡도는 다음 세 가지에 의존한다.</p>
+              <ul>
+                <li>\(|\mathcal H|\)</li>
+                <li>\(\varepsilon\)</li>
+                <li>\(1-\delta\)</li>
+              </ul>
+
+              <h3>10) Estimation Error and Approximation Error</h3>
+              <div class="formula">
+                $$
+                R(\hat h_{\mathcal H})-R^*
+                =
+                \bigl(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\bigr)
+                +
+                \bigl(R_{\mathcal H}^*-R^*\bigr)
+                $$
+              </div>
+
+              <div class="formula">
+                $$
+                R^*=\inf_{h:X\to Y}R(h),
+                \qquad
+                R_{\mathcal H}^*=\inf_{h\in\mathcal H}R(h)
+                $$
+              </div>
+
+              <ul>
+                <li>\(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\): estimation error</li>
+                <li>\(R_{\mathcal H}^*-R^*\): approximation error</li>
+              </ul>
+
+              <h3>11) Why More Data Mainly Reduces Estimation Error</h3>
+              <p>데이터가 많아지면 empirical risk가 true risk를 더 잘 근사하므로 estimation error가 줄어든다.</p>
+
+              <div class="formula">
+                $$
+                R(\hat h_{\mathcal H})-R_{\mathcal H}^*
+                $$
+              </div>
+
+              <p>하지만 approximation error는 \(\mathcal H\)의 표현력 한계에서 생기므로 데이터 증가만으로 직접 줄어들지 않는다.</p>
+
+              <h3>12) Data Augmentation as an Effective Increase of Sample Size</h3>
+              <ul>
+                <li>rotation</li>
+                <li>translation</li>
+                <li>cropping</li>
+                <li>flipping</li>
+                <li>small perturbations</li>
+              </ul>
+
+              <p>핵심 아이디어는 semantic invariance다. 적절한 변형 후에도 라벨은 유지되어야 한다.</p>
+
+              <div class="formula">
+                $$
+                R_v(h)
+                =
+                \frac{1}{m}\sum_{i=1}^m
+                \mathbb E_{\epsilon}\big[\ell(y_i,h(x_i+\epsilon))\big]
+                $$
+              </div>
+
+              <div class="summary-box">
+                데이터 증강은 각 데이터 주변 이웃까지 학습시키는 방식으로 일반화 성능을 높인다.
+              </div>
+
+              <div class="formula">
+                $$
+                \boxed{
+                \text{Learning}
+                =
+                \text{ERM over a restricted hypothesis class}
+                +
+                \text{generalization guarantee}
+                }
+                $$
+              </div>
+            </div>
+          </section>
+
+          <div class="footer">&copy; 2026 Machine Learning Notes — Chapter 2</div>
+        </article>
+
+        <aside class="toc-card">
+          <h3 class="toc-title">섹션 이동</h3>
+          <div class="toc-list">
+            <a class="toc-link" href="#supervised">Supervised Learning</a>
+            <a class="toc-link" href="#hypothesis">Hypothesis Class</a>
+            <a class="toc-link" href="#loss">Loss Function</a>
+            <a class="toc-link" href="#risk">True Risk</a>
+            <a class="toc-link" href="#erm">ERM</a>
+            <a class="toc-link" href="#generalization">Generalization</a>
+            <a class="toc-link" href="#excess">Excess Risk</a>
+            <a class="toc-link" href="#decomposition">Error Decomposition</a>
+            <a class="toc-link" href="#complexity">Model Complexity</a>
+            <a class="toc-link" href="#augmentation">Data Augmentation</a>
+            <a class="toc-link" href="#vicinal">Vicinal Risk Minimization</a>
+            <a class="toc-link" href="#additional">Additional Concepts</a>
+          </div>
+        </aside>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const searchInput = document.getElementById('searchInput');
+    const searchableItems = [...document.querySelectorAll('.searchable')];
+    const tocLinks = [...document.querySelectorAll('.toc-link')];
+    const miniLinks = [...document.querySelectorAll('.mini-link')];
+    const observedSections = [...document.querySelectorAll('.section-card')];
+
+    function applySearch(){
+      const keyword = searchInput.value.trim().toLowerCase();
+      searchableItems.forEach(item => {
+        const text = item.innerText.toLowerCase();
+        const visible = text.includes(keyword);
+        item.dataset.hidden = visible ? 'false' : 'true';
+      });
+    }
+
+    searchInput.addEventListener('input', applySearch);
+    applySearch();
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          tocLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+          miniLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      rootMargin:'-20% 0px -60% 0px',
+      threshold:0.05
+    });
+
+    observedSections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>
