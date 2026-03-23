@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Machine Learning Chapter 2</title>
+  <title>Why ERM Makes Sense</title>
 
   <script>
     window.MathJax = {
@@ -20,23 +20,20 @@
       --primary:#2563eb;
       --primary-dark:#1d4ed8;
       --secondary:#3b82f6;
-      --accent:#f59e0b;
       --bg:#f8fafc;
-      --bg-soft:#eef4ff;
       --text:#1e293b;
       --card:#ffffff;
       --muted:#64748b;
       --border:#e2e8f0;
-      --success-bg:#f0fdf4;
-      --success-border:#bbf7d0;
+      --soft:#eff6ff;
+      --soft2:#f8fafc;
       --warn-bg:#fff7ed;
       --warn-border:#fed7aa;
-      --shadow-sm:0 4px 10px rgba(15,23,42,.05);
-      --shadow-md:0 14px 30px rgba(15,23,42,.08);
-      --radius-lg:24px;
-      --radius-md:18px;
-      --radius-sm:12px;
-      --sidebar-width:290px;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --shadow:0 10px 24px rgba(15,23,42,.06);
+      --radius:22px;
+      --sidebar-width:280px;
     }
 
     *{box-sizing:border-box}
@@ -82,35 +79,6 @@
       font-size:.92rem;
     }
 
-    .search-box{
-      position:relative;
-      margin-bottom:18px;
-    }
-
-    .search-box span{
-      position:absolute;
-      left:14px;
-      top:50%;
-      transform:translateY(-50%);
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .search-box input{
-      width:100%;
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px 14px 12px 40px;
-      font-size:.95rem;
-      outline:none;
-      background:#fff;
-    }
-
-    .search-box input:focus{
-      border-color:#93c5fd;
-      box-shadow:0 0 0 4px rgba(59,130,246,.12);
-    }
-
     .side-group{margin-bottom:18px}
     .side-label{
       margin:0 0 10px;
@@ -134,7 +102,7 @@
       border:1px solid #edf2f7;
       border-radius:12px;
       color:var(--muted);
-      font-size:.9rem;
+      font-size:.92rem;
       transition:.2s ease;
     }
 
@@ -153,7 +121,7 @@
     .hero{
       position:relative;
       overflow:hidden;
-      padding:38px 30px;
+      padding:40px 30px;
       border-radius:30px;
       background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
       color:#fff;
@@ -174,14 +142,24 @@
     .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
 
     .hero-inner{position:relative;z-index:1}
-    .hero h1{margin:0;font-size:2.15rem;line-height:1.12;letter-spacing:-.02em}
-    .hero p{margin:10px 0 0;opacity:.94}
+    .hero h1{
+      margin:0;
+      font-size:2.2rem;
+      line-height:1.12;
+      letter-spacing:-.02em;
+    }
+
+    .hero p{
+      margin:12px 0 0;
+      opacity:.95;
+      max-width:760px;
+    }
 
     .top-summary{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
       gap:14px;
-      margin-bottom:26px;
+      margin-bottom:18px;
     }
 
     .summary-card{
@@ -189,7 +167,7 @@
       border:1px solid var(--border);
       border-radius:18px;
       padding:16px 18px;
-      box-shadow:var(--shadow-sm);
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
     }
 
     .summary-card .label{
@@ -207,75 +185,40 @@
       line-height:1.5;
     }
 
-    .main-grid{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 300px;
-      gap:22px;
-      align-items:start;
+    .article{
+      max-width:980px;
+      min-width:0;
     }
 
-    .article{min-width:0}
-
-    .toc-card,
     .concept-card,
-    .section-card{
+    .section-card,
+    .flow-card{
       background:var(--card);
       border:1px solid var(--border);
-      border-radius:22px;
-      box-shadow:var(--shadow-sm);
+      border-radius:var(--radius);
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
     }
 
-    .toc-card{
-      position:sticky;
-      top:22px;
-      padding:18px;
-    }
-
-    .toc-title{
-      margin:0 0 12px;
-      font-size:1rem;
-      font-weight:820;
-      color:var(--primary-dark);
-    }
-
-    .toc-list{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-    }
-
-    .toc-link{
-      display:block;
-      padding:10px 12px;
-      border-radius:12px;
-      font-size:.93rem;
-      color:var(--muted);
-      border:1px solid #edf2f7;
-      background:#fff;
-      transition:.2s ease;
-    }
-
-    .toc-link:hover,
-    .toc-link.active{
-      background:#eff6ff;
-      border-color:#bfdbfe;
-      color:var(--primary-dark);
-      font-weight:700;
-    }
-
-    .concept-card{
+    .concept-card,
+    .flow-card{
       padding:18px 20px;
       margin-bottom:18px;
       background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
     }
 
-    .concept-card h3{
+    .concept-card h3,
+    .flow-card h3{
       margin:0 0 10px;
       color:var(--primary-dark);
       font-size:1.08rem;
     }
 
-    .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .chip-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
     .chip{
       display:inline-flex;
       align-items:center;
@@ -286,6 +229,42 @@
       font-size:.84rem;
       font-weight:700;
       color:#0f172a;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .flow-step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px 13px;
+    }
+
+    .flow-step .step{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.74rem;
+      font-weight:800;
+      color:var(--secondary);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .flow-step .title{
+      font-weight:780;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
+
+    .flow-step p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.55;
     }
 
     .section-card{
@@ -315,7 +294,7 @@
       display:flex;
       align-items:center;
       gap:12px;
-      font-size:1.42rem;
+      font-size:1.4rem;
       font-weight:820;
       letter-spacing:-.02em;
       color:#0f172a;
@@ -336,14 +315,8 @@
 
     h3{
       margin:22px 0 10px;
-      font-size:1.12rem;
+      font-size:1.1rem;
       color:var(--secondary);
-    }
-
-    h4{
-      margin:18px 0 8px;
-      font-size:1rem;
-      color:#0f172a;
     }
 
     p{margin:10px 0}
@@ -391,17 +364,6 @@
       overflow-x:auto;
     }
 
-    .highlight{
-      background:#fef3c7;
-      padding:4px 8px;
-      border-radius:8px;
-      font-weight:800;
-    }
-
-    .muted{color:var(--muted)}
-    .good{color:#16a34a;font-weight:800}
-    .bad{color:#dc2626;font-weight:800}
-
     .grid2{
       display:grid;
       grid-template-columns:1fr 1fr;
@@ -415,54 +377,11 @@
       background:#fff;
     }
 
-    .step{
-      border:1px solid var(--border);
-      border-radius:16px;
-      padding:16px 18px;
-      margin:12px 0;
-      background:#fff;
-      box-shadow:0 2px 6px rgba(15,23,42,.03);
-    }
-
-    .step-title{
-      margin:0 0 10px;
-      font-size:1rem;
-      font-weight:800;
-      color:var(--primary-dark);
-    }
-
-    table{
-      width:100%;
-      border-collapse:collapse;
-      margin:16px 0;
-      overflow:hidden;
-      border-radius:14px;
-    }
-
-    th,td{
-      padding:12px;
-      border:1px solid var(--border);
-      text-align:left;
-      vertical-align:top;
-    }
-
-    th{
-      background:#f8fafc;
-      color:var(--primary-dark);
-    }
-
     .footer{
       text-align:center;
       color:var(--muted);
       font-size:.9rem;
       margin-top:28px;
-    }
-
-    [data-hidden="true"]{display:none !important}
-
-    @media (max-width:1100px){
-      .main-grid{grid-template-columns:1fr}
-      .toc-card{position:static}
     }
 
     @media (max-width:980px){
@@ -476,14 +395,19 @@
       .content{padding:18px 16px 48px}
     }
 
+    @media (max-width:900px){
+      .flow-grid{grid-template-columns:1fr 1fr}
+    }
+
     @media (max-width:760px){
       .top-summary{grid-template-columns:1fr}
       .grid2{grid-template-columns:1fr}
+      .flow-grid{grid-template-columns:1fr}
       .hero{padding:30px 22px}
-      .hero h1{font-size:1.85rem}
+      .hero h1{font-size:1.9rem}
       .section-head{padding:20px 20px 14px}
       .section-body{padding:18px 20px 22px}
-      .section-title{font-size:1.2rem}
+      .section-title{font-size:1.22rem}
     }
   </style>
 </head>
@@ -491,42 +415,27 @@
   <div class="layout">
     <aside class="sidebar">
       <h2>Machine Learning</h2>
-      <p>Chapter 2 정리</p>
-
-      <div class="search-box">
-        <span>🔍</span>
-        <input id="searchInput" type="text" placeholder="개념 검색..." />
-      </div>
 
       <div class="side-group">
         <div class="side-label">Reading Map</div>
         <div class="side-links">
-          <a class="mini-link" href="#supervised">Supervised Learning</a>
-          <a class="mini-link" href="#hypothesis">Hypothesis Class</a>
-          <a class="mini-link" href="#loss">Loss Function</a>
-          <a class="mini-link" href="#risk">True Risk</a>
-          <a class="mini-link" href="#erm">ERM</a>
-          <a class="mini-link" href="#generalization">Generalization</a>
-          <a class="mini-link" href="#excess">Excess Risk</a>
-          <a class="mini-link" href="#decomposition">Error Decomposition</a>
-          <a class="mini-link" href="#complexity">Model Complexity</a>
-          <a class="mini-link" href="#augmentation">Data Augmentation</a>
-          <a class="mini-link" href="#vicinal">Vicinal Risk Minimization</a>
-          <a class="mini-link" href="#additional">Additional Concepts</a>
+          <a class="mini-link" href="#problem">왜 learning이 어려운가</a>
+          <a class="mini-link" href="#risk">True Risk vs Empirical Risk</a>
+          <a class="mini-link" href="#erm">왜 ERM을 쓰는가</a>
+          <a class="mini-link" href="#overfitting">왜 과적합이 생기는가</a>
+          <a class="mini-link" href="#decomposition">오차를 어떻게 나누는가</a>
+          <a class="mini-link" href="#takeaway">결론</a>
         </div>
       </div>
 
       <div class="side-group">
-        <div class="side-label">핵심 개념</div>
+        <div class="side-label">핵심 키워드</div>
         <div class="side-links">
-          <a class="mini-link" href="#supervised">\(D=\{(x_i,y_i)\}\)</a>
-          <a class="mini-link" href="#hypothesis">\(\mathcal H\)</a>
-          <a class="mini-link" href="#loss">\(\ell(y,h(x))\)</a>
           <a class="mini-link" href="#risk">\(R(h)\)</a>
           <a class="mini-link" href="#erm">\(\hat h_{\mathcal H}\)</a>
-          <a class="mini-link" href="#generalization">generalization gap</a>
-          <a class="mini-link" href="#decomposition">estimation vs approximation</a>
-          <a class="mini-link" href="#vicinal">\(R_v(h)\)</a>
+          <a class="mini-link" href="#overfitting">generalization gap</a>
+          <a class="mini-link" href="#decomposition">estimation error</a>
+          <a class="mini-link" href="#decomposition">approximation error</a>
         </div>
       </div>
     </aside>
@@ -534,745 +443,282 @@
     <main class="content">
       <header class="hero">
         <div class="hero-inner">
-          <h1>Machine Learning Chapter 2</h1>
-          <p>지도학습 → 가설공간 → 손실함수 → 위험 → ERM → 일반화 → 오류분해 → 데이터 증강</p>
+          <h1>Machine Learning 2</h1>
+          <p>훈련 데이터를 외우는 것이 아니라, 보지 않은 데이터에서도 잘 작동하는 예측 함수를 만드는 것이 목표다.</p>
         </div>
       </header>
 
       <section class="top-summary">
         <div class="summary-card">
-          <div class="label">Core Goal</div>
-          <div class="value">보지 않은 데이터에서도 잘 작동하는 예측 함수를 학습하는 것</div>
+          <div class="label">Goal</div>
+          <div class="value">새로운 데이터에서도 잘 맞는 predictor를 찾는 것</div>
         </div>
         <div class="summary-card">
           <div class="label">Main Tool</div>
-          <div class="value">True risk 대신 empirical risk를 최소화하는 ERM</div>
+          <div class="value">unknown true risk 대신 empirical risk를 최소화하는 ERM</div>
         </div>
         <div class="summary-card">
-          <div class="label">Main Issue</div>
-          <div class="value">훈련오차만 낮추면 과적합이 발생할 수 있음</div>
+          <div class="label">Main Danger</div>
+          <div class="value">training error만 보면 memorization으로 과적합할 수 있음</div>
         </div>
       </section>
 
-      <div class="main-grid">
-        <article class="article">
-
-          <div class="concept-card searchable">
-            <h3>한 줄 큰 그림</h3>
-            <div class="chip-wrap">
-              <span class="chip">데이터 \(D=\{(x_i,y_i)\}\)</span>
-              <span class="chip">가설공간 \(\mathcal H\)</span>
-              <span class="chip">손실 \(\ell(y,h(x))\)</span>
-              <span class="chip">True risk \(R(h)\)</span>
-              <span class="chip">Empirical risk</span>
-              <span class="chip">ERM</span>
-              <span class="chip">Generalization</span>
-              <span class="chip">Approximation vs Estimation</span>
+      <article class="article">
+        <div class="flow-card">
+          <h3>Flow Overview</h3>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <div class="step">1</div>
+              <div class="title">우리가 진짜 원하는 것</div>
+              <p>훈련셋을 맞히는 것이 아니라 unseen data에서도 잘 작동하는 규칙을 찾는 것.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">2</div>
+              <div class="title">직접 못 보는 대상</div>
+              <p>true risk는 distribution 전체 평균이라서 실제 학습 시점에는 직접 계산할 수 없다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">3</div>
+              <div class="title">그래서 쓰는 대체물</div>
+              <p>표본 위에서 계산 가능한 empirical risk를 최소화하는 ERM을 사용한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">4</div>
+              <div class="title">하지만 끝이 아님</div>
+              <p>ERM만 믿으면 overfitting이 생길 수 있으므로 hypothesis class와 generalization을 함께 봐야 한다.</p>
             </div>
           </div>
-
-          <section class="section-card searchable" id="supervised">
-            <div class="section-head">
-              <div class="section-kicker">Section 1</div>
-              <h2 class="section-title">Supervised Learning</h2>
-            </div>
-            <div class="section-body">
-              <p>지도학습에서는 입력과 정답 라벨이 함께 주어진 데이터셋으로부터 예측 함수를 학습한다.</p>
-
-              <h3>Dataset</h3>
-              <div class="formula">
-                $$
-                D=\{(x_1,y_1),\dots,(x_n,y_n)\}
-                $$
-              </div>
-
-              <ul>
-                <li>\(x_i\in\mathbb R^d\): feature vector</li>
-                <li>\(y_i\): label</li>
-                <li>\((x_i,y_i)\sim P_{XY}\): unknown data distribution</li>
-              </ul>
-
-              <h3>Goal</h3>
-              <p>보지 않은 데이터에 대해서도 잘 예측하는 함수를 학습하는 것이 목표다.</p>
-              <div class="formula">
-                $$
-                h:X\rightarrow Y
-                $$
-                $$
-                h(x)\approx y
-                $$
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="hypothesis">
-            <div class="section-head">
-              <div class="section-kicker">Section 2</div>
-              <h2 class="section-title">Hypothesis Class</h2>
-            </div>
-            <div class="section-body">
-              <p>학습자는 모든 가능한 함수를 탐색하지 않고, 미리 정한 함수 집합 안에서만 해를 찾는다.</p>
-
-              <div class="formula">
-                $$
-                h\in\mathcal H
-                $$
-              </div>
-
-              <h3>Examples</h3>
-              <ul>
-                <li>linear models</li>
-                <li>decision trees</li>
-                <li>neural networks</li>
-              </ul>
-
-              <div class="note">
-                \(\mathcal H\)의 선택은 모델의 표현력과 복잡도를 결정한다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="loss">
-            <div class="section-head">
-              <div class="section-kicker">Section 3</div>
-              <h2 class="section-title">Loss Function</h2>
-            </div>
-            <div class="section-body">
-              <p>손실 함수는 예측이 얼마나 틀렸는지를 수치화한다.</p>
-
-              <div class="formula">
-                $$
-                \ell(y,h(x))
-                $$
-              </div>
-
-              <h3>Zero-One Loss</h3>
-              <div class="formula">
-                $$
-                \ell(y,h(x))=
-                \begin{cases}
-                0, & h(x)=y,\\
-                1, & h(x)\neq y.
-                \end{cases}
-                $$
-              </div>
-              <p class="muted">분류 문제에서 자주 사용된다.</p>
-
-              <h3>Squared Loss</h3>
-              <div class="formula">
-                $$
-                \ell(y,h(x))=(h(x)-y)^2
-                $$
-              </div>
-              <p class="muted">회귀 문제에서 자주 사용된다.</p>
-
-              <div class="formula">
-                $$
-                \arg\min_c \mathbb E[(c-y)^2]=\mathbb E[y]
-                $$
-              </div>
-
-              <h3>Absolute Loss</h3>
-              <div class="formula">
-                $$
-                \ell(y,h(x))=|h(x)-y|
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                \arg\min_c \mathbb E|c-y|=\operatorname{median}(y)
-                $$
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="risk">
-            <div class="section-head">
-              <div class="section-kicker">Section 4</div>
-              <h2 class="section-title">True Risk</h2>
-            </div>
-            <div class="section-body">
-              <p>True risk는 데이터 분포 전체에 대한 평균 손실이다. 이것이 진짜 성능을 나타낸다.</p>
-
-              <div class="formula">
-                $$
-                R(h)=\mathbb E_{(x,y)\sim P_{XY}}[\ell(y,h(x))]
-                $$
-              </div>
-
-              <h3>Learning objective</h3>
-              <div class="formula">
-                $$
-                h^*=\arg\min_{h:X\to Y}R(h)
-                $$
-              </div>
-
-              <div class="warn">
-                하지만 실제로는 \(P_{XY}\)를 모르기 때문에 \(R(h)\)를 직접 계산할 수 없다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="erm">
-            <div class="section-head">
-              <div class="section-kicker">Section 5</div>
-              <h2 class="section-title">Empirical Risk Minimization (ERM)</h2>
-            </div>
-            <div class="section-body">
-              <p>True risk를 직접 구할 수 없으므로, 훈련 데이터에서 계산 가능한 empirical risk를 대신 최소화한다.</p>
-
-              <div class="formula">
-                $$
-                L(h;D)=\frac{1}{n}\sum_{i=1}^{n}\ell(y_i,h(x_i))
-                $$
-              </div>
-
-              <div class="quote">
-                ERM은 “데이터에서 평균적으로 가장 덜 틀리는 모델을 고르자”는 원리다.
-              </div>
-
-              <div class="formula">
-                $$
-                \hat h_{\mathcal H}=\arg\min_{h\in\mathcal H}L(h;D)
-                $$
-              </div>
-
-              <h3>Law of Large Numbers</h3>
-              <div class="formula">
-                $$
-                L(h;D)\to R(h)\qquad(n\to\infty)
-                $$
-              </div>
-
-              <p>표본 수가 충분히 크면 empirical risk가 true risk를 잘 근사하게 된다.</p>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="generalization">
-            <div class="section-head">
-              <div class="section-kicker">Section 6</div>
-              <h2 class="section-title">Generalization</h2>
-            </div>
-            <div class="section-body">
-              <h3>Training error</h3>
-              <div class="formula">
-                $$
-                L(h;D)
-                $$
-              </div>
-
-              <h3>True error</h3>
-              <div class="formula">
-                $$
-                R(h)
-                $$
-              </div>
-
-              <p>좋은 모델은 훈련 오차와 진짜 오차가 비슷해야 한다.</p>
-
-              <div class="formula">
-                $$
-                L(h;D)\approx R(h)
-                $$
-              </div>
-
-              <p>과적합은 훈련 오차는 매우 작은데 실제 오차는 큰 경우다.</p>
-
-              <div class="formula">
-                $$
-                L(h;D)\ll R(h)
-                $$
-              </div>
-
-              <div class="summary-box">
-                일반화란 훈련 데이터에서 잘 맞는 것에 그치지 않고, 새로운 데이터에서도 잘 맞는 능력을 뜻한다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="excess">
-            <div class="section-head">
-              <div class="section-kicker">Section 7</div>
-              <h2 class="section-title">Excess Risk</h2>
-            </div>
-            <div class="section-body">
-              <p>최적의 예측기와 비교했을 때 현재 모델이 얼마나 더 손해를 보는지를 excess risk라고 한다.</p>
-
-              <div class="formula">
-                $$
-                R^*=\inf_{h:X\to Y}R(h)
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                R(\hat h_{\mathcal H})-R^*
-                $$
-              </div>
-
-              <p>이 값이 작을수록 학습된 모델이 이상적인 최적 예측기에 가깝다.</p>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="decomposition">
-            <div class="section-head">
-              <div class="section-kicker">Section 8</div>
-              <h2 class="section-title">Error Decomposition</h2>
-            </div>
-            <div class="section-body">
-              <p>전체 오차는 보통 estimation error와 approximation error로 분해해서 본다.</p>
-
-              <div class="formula">
-                $$
-                R_{\mathcal H}^*=\inf_{h\in\mathcal H}R(h)
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                R(\hat h_{\mathcal H})-R^*
-                =
-                \bigl(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\bigr)
-                +
-                \bigl(R_{\mathcal H}^*-R^*\bigr)
-                $$
-              </div>
-
-              <div class="grid2">
-                <div class="mini-card">
-                  <h4>Estimation Error</h4>
-                  <div class="formula">
-                    $$
-                    R(\hat h_{\mathcal H})-R_{\mathcal H}^*
-                    $$
-                  </div>
-                  <ul>
-                    <li>finite training data</li>
-                    <li>sampling noise</li>
-                  </ul>
-                  <p class="good">데이터가 많아질수록 감소</p>
-                </div>
-
-                <div class="mini-card">
-                  <h4>Approximation Error</h4>
-                  <div class="formula">
-                    $$
-                    R_{\mathcal H}^*-R^*
-                    $$
-                  </div>
-                  <ul>
-                    <li>모델 클래스의 표현력 한계</li>
-                  </ul>
-                  <p class="bad">데이터가 늘어도 직접 줄지 않음</p>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="complexity">
-            <div class="section-head">
-              <div class="section-kicker">Section 9</div>
-              <h2 class="section-title">Model Complexity</h2>
-            </div>
-            <div class="section-body">
-              <p>가설공간의 크기는 approximation error와 estimation error 사이의 trade-off를 만든다.</p>
-
-              <ul>
-                <li>larger \(\mathcal H\) \(\Rightarrow\) smaller approximation error</li>
-                <li>larger \(\mathcal H\) \(\Rightarrow\) larger estimation error</li>
-              </ul>
-
-              <h3>Underfitting</h3>
-              <div class="formula">
-                $$
-                \text{approximation error is large}
-                $$
-              </div>
-
-              <h3>Overfitting</h3>
-              <div class="formula">
-                $$
-                \text{estimation error is large}
-                $$
-              </div>
-
-              <div class="summary-box">
-                모델이 너무 단순하면 underfitting, 너무 복잡하면 overfitting 위험이 커진다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="augmentation">
-            <div class="section-head">
-              <div class="section-kicker">Section 10</div>
-              <h2 class="section-title">Data Augmentation</h2>
-            </div>
-            <div class="section-body">
-              <p>데이터 증강은 기존 데이터에 의미를 유지하는 변형을 적용하여 새로운 학습 샘플처럼 활용하는 방법이다.</p>
-
-              <h3>Examples</h3>
-              <ul>
-                <li>rotation</li>
-                <li>translation</li>
-                <li>flipping</li>
-                <li>cropping</li>
-                <li>noise injection</li>
-              </ul>
-
-              <h3>Key principle</h3>
-              <div class="formula">
-                $$
-                \text{semantic invariance}
-                $$
-              </div>
-
-              <div class="note">
-                변형 이후에도 클래스 라벨이 유지되어야 한다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="vicinal">
-            <div class="section-head">
-              <div class="section-kicker">Section 11</div>
-              <h2 class="section-title">Vicinal Risk Minimization</h2>
-            </div>
-            <div class="section-body">
-              <p>관측된 점들만 보는 것이 아니라, 각 점 주변 이웃까지 포함해서 손실을 줄이려는 관점이다.</p>
-
-              <div class="formula">
-                $$
-                R_v(h)
-                =
-                \frac{1}{n}\sum_{i=1}^{n}
-                \mathbb E_{\epsilon}\!\left[\ell\bigl(y_i,h(x_i+\epsilon)\bigr)\right]
-                $$
-              </div>
-
-              <p>이 방식은 데이터 분포를 더 부드럽게 근사하는 데 도움을 준다.</p>
-
-              <div class="quote">
-                Data augmentation은 실제로 vicinal risk minimization을 구현하는 한 방식으로 볼 수 있다.
-              </div>
-            </div>
-          </section>
-
-          <section class="section-card searchable" id="additional">
-            <div class="section-head">
-              <div class="section-kicker">Section 12</div>
-              <h2 class="section-title">Additional Concepts</h2>
-            </div>
-            <div class="section-body">
-              <p>이 부분은 앞에서 나온 내용을 통계적 관점에서 다시 정리하는 섹션이다.</p>
-
-              <h3>1) True Objective vs. Empirical Objective</h3>
-              <p>학습의 진짜 목표는 훈련셋에서 잘 맞는 것이 아니라 새로운 데이터에서도 잘 예측하는 것이다.</p>
-
-              <div class="formula">
-                $$
-                S=((x_1,y_1),\dots,(x_m,y_m)),\qquad
-                h:\mathcal X\to\mathcal Y
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                L_{\mathcal D,f}(h)=\mathbb P_{x\sim\mathcal D}[h(x)\neq f(x)]
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                R(h)=\mathbb E_{(x,y)\sim P}\big[\ell(y,h(x))\big]
-                $$
-              </div>
-
-              <h3>2) Why We Cannot Minimize the True Risk Directly</h3>
-              <ul>
-                <li>분포 \(\mathcal D\) 또는 \(P\)를 모름</li>
-                <li>target function \(f\)를 모름</li>
-              </ul>
-
-              <div class="formula">
-                $$
-                L_{\mathcal D,f}(h)
-                \qquad\text{or}\qquad
-                R(h)
-                $$
-              </div>
-
-              <p>따라서 표본으로 계산 가능한 양을 대신 써야 한다.</p>
-
-              <h3>3) Empirical Risk as a Sample Average</h3>
-              <div class="formula">
-                $$
-                L_S(h)=\frac{|\{i\in[m]:h(x_i)\neq y_i\}|}{m}
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                L_S(h)=\frac{1}{m}\sum_{i=1}^m \mathbf 1\{h(x_i)\neq y_i\}
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                \widehat R_S(h)=\frac{1}{m}\sum_{i=1}^m \ell(y_i,h(x_i))
-                $$
-              </div>
-
-              <div class="note">
-                empirical risk는 sample average, true risk는 population average다.
-              </div>
-
-              <h3>4) Why the Sample Average is Reasonable</h3>
-              <div class="formula">
-                $$
-                Z_i:=\ell(y_i,h(x_i))
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                \widehat R_S(h)=\frac{1}{m}\sum_{i=1}^m Z_i
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                \mathbb E[\widehat R_S(h)]
-                =
-                \frac{1}{m}\sum_{i=1}^m \mathbb E[Z_i]
-                =
-                R(h)
-                $$
-              </div>
-
-              <p>즉 empirical risk는 true risk의 unbiased estimator다.</p>
-
-              <h3>5) Law of Large Numbers and ERM</h3>
-              <div class="formula">
-                $$
-                \widehat R_S(h)\to R(h)\qquad\text{as }m\to\infty
-                $$
-              </div>
-
-              <p>샘플 수가 커질수록 sample average가 population average에 가까워진다.</p>
-
-              <h3>6) ERM Reinterpreted</h3>
-              <div class="formula">
-                $$
-                \mathrm{ERM}_{\mathcal H}(S)\in\arg\min_{h\in\mathcal H}L_S(h)
-                $$
-              </div>
-
-              <div class="quote">
-                unknown true risk를 직접 최소화할 수 없으므로, sample-based approximation을 최소화한다.
-              </div>
-
-              <div class="formula">
-                $$
-                \min_{h\in\mathcal H}R(h)
-                \qquad\longrightarrow\qquad
-                \min_{h\in\mathcal H}\widehat R_S(h)
-                $$
-              </div>
-
-              <h3>7) Training Error and Generalization Error</h3>
-              <p>훈련 오차가 작다고 해서 반드시 진짜 오차가 작은 것은 아니다.</p>
-
-              <div class="formula">
-                $$
-                h_S(x)=
-                \begin{cases}
-                y_i, & \text{if } x=x_i \text{ for some } i,\\
-                0, & \text{otherwise}.
-                \end{cases}
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                L_S(h_S)=0
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                \text{small training error}\;\not\Rightarrow\;\text{small true error}
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                L_S(h)-L_{\mathcal D,f}(h)
-                \qquad\text{or}\qquad
-                \widehat R_S(h)-R(h)
-                $$
-              </div>
-
-              <p>이 차이를 generalization gap이라고 부른다.</p>
-
-              <h3>8) Why the Hypothesis Class Must Be Restricted</h3>
-              <div class="formula">
-                $$
-                \mathcal H\subset\{h:\mathcal X\to\mathcal Y\}
-                $$
-              </div>
-
-              <p>모든 함수를 허용하면 ERM은 훈련셋을 외워버리는 규칙을 선택할 수 있다. 그래서 의미 있는 구조적 제한이 필요하다.</p>
-
-              <ul>
-                <li>axis-aligned rectangles</li>
-                <li>linear classifiers</li>
-                <li>bounded-depth trees</li>
-              </ul>
-
-              <h3>9) Statistical Meaning of the Finite \(\mathcal H\) Result</h3>
-              <div class="formula">
-                $$
-                m\ge \frac{\log(|\mathcal H|/\delta)}{\varepsilon}
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                L_{\mathcal D,f}(h_S)\le \varepsilon
-                $$
-              </div>
-
-              <p>표본 복잡도는 다음 세 가지에 의존한다.</p>
-              <ul>
-                <li>\(|\mathcal H|\)</li>
-                <li>\(\varepsilon\)</li>
-                <li>\(1-\delta\)</li>
-              </ul>
-
-              <h3>10) Estimation Error and Approximation Error</h3>
-              <div class="formula">
-                $$
-                R(\hat h_{\mathcal H})-R^*
-                =
-                \bigl(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\bigr)
-                +
-                \bigl(R_{\mathcal H}^*-R^*\bigr)
-                $$
-              </div>
-
-              <div class="formula">
-                $$
-                R^*=\inf_{h:X\to Y}R(h),
-                \qquad
-                R_{\mathcal H}^*=\inf_{h\in\mathcal H}R(h)
-                $$
-              </div>
-
-              <ul>
-                <li>\(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\): estimation error</li>
-                <li>\(R_{\mathcal H}^*-R^*\): approximation error</li>
-              </ul>
-
-              <h3>11) Why More Data Mainly Reduces Estimation Error</h3>
-              <p>데이터가 많아지면 empirical risk가 true risk를 더 잘 근사하므로 estimation error가 줄어든다.</p>
-
-              <div class="formula">
-                $$
-                R(\hat h_{\mathcal H})-R_{\mathcal H}^*
-                $$
-              </div>
-
-              <p>하지만 approximation error는 \(\mathcal H\)의 표현력 한계에서 생기므로 데이터 증가만으로 직접 줄어들지 않는다.</p>
-
-              <h3>12) Data Augmentation as an Effective Increase of Sample Size</h3>
-              <ul>
-                <li>rotation</li>
-                <li>translation</li>
-                <li>cropping</li>
-                <li>flipping</li>
-                <li>small perturbations</li>
-              </ul>
-
-              <p>핵심 아이디어는 semantic invariance다. 적절한 변형 후에도 라벨은 유지되어야 한다.</p>
-
-              <div class="formula">
-                $$
-                R_v(h)
-                =
-                \frac{1}{m}\sum_{i=1}^m
-                \mathbb E_{\epsilon}\big[\ell(y_i,h(x_i+\epsilon))\big]
-                $$
-              </div>
-
-              <div class="summary-box">
-                데이터 증강은 각 데이터 주변 이웃까지 학습시키는 방식으로 일반화 성능을 높인다.
-              </div>
-
-              <div class="formula">
-                $$
-                \boxed{
-                \text{Learning}
-                =
-                \text{ERM over a restricted hypothesis class}
-                +
-                \text{generalization guarantee}
-                }
-                $$
-              </div>
-            </div>
-          </section>
-
-          <div class="footer">&copy; 2026 Machine Learning Notes — Chapter 2</div>
-        </article>
-
-        <aside class="toc-card">
-          <h3 class="toc-title">섹션 이동</h3>
-          <div class="toc-list">
-            <a class="toc-link" href="#supervised">Supervised Learning</a>
-            <a class="toc-link" href="#hypothesis">Hypothesis Class</a>
-            <a class="toc-link" href="#loss">Loss Function</a>
-            <a class="toc-link" href="#risk">True Risk</a>
-            <a class="toc-link" href="#erm">ERM</a>
-            <a class="toc-link" href="#generalization">Generalization</a>
-            <a class="toc-link" href="#excess">Excess Risk</a>
-            <a class="toc-link" href="#decomposition">Error Decomposition</a>
-            <a class="toc-link" href="#complexity">Model Complexity</a>
-            <a class="toc-link" href="#augmentation">Data Augmentation</a>
-            <a class="toc-link" href="#vicinal">Vicinal Risk Minimization</a>
-            <a class="toc-link" href="#additional">Additional Concepts</a>
+        </div>
+
+        <div class="concept-card">
+          <h3>한 줄 큰 그림</h3>
+          <div class="chip-wrap">
+            <span class="chip">True Risk</span>
+            <span class="chip">Empirical Risk</span>
+            <span class="chip">ERM</span>
+            <span class="chip">Generalization</span>
+            <span class="chip">Overfitting</span>
+            <span class="chip">Estimation Error</span>
+            <span class="chip">Approximation Error</span>
           </div>
-        </aside>
-      </div>
+        </div>
+
+        <section class="section-card" id="problem">
+          <div class="section-head">
+            <div class="section-kicker">Step 1</div>
+            <h2 class="section-title">왜 learning이 어려운가</h2>
+          </div>
+          <div class="section-body">
+            <p>지도학습에서는 데이터셋</p>
+            <div class="formula">
+              $$
+              D=\{(x_1,y_1),\dots,(x_n,y_n)\}
+              $$
+            </div>
+            <p>으로부터 예측 함수 \(h\)를 학습한다. 그런데 우리가 실제로 잘하고 싶은 대상은 훈련셋 그 자체가 아니다. 진짜 목표는 앞으로 새롭게 들어올 입력 \(x\)에 대해서도 좋은 예측을 내는 것이다.</p>
+
+            <div class="quote">
+              문제는 미래 데이터의 평균 손실을 직접 계산할 수 없다는 점이다.
+            </div>
+
+            <p>즉, 학습의 핵심 문제는 결국 다음 질문으로 모인다.</p>
+            <div class="summary-box">
+              훈련 데이터만 보고, 보지 않은 데이터에서의 성능을 좋게 만드는 규칙을 어떻게 고를 것인가?
+            </div>
+
+            <p>이 지점에서 이미 어려움이 생긴다. 우리가 손에 쥐고 있는 것은 표본(sample)뿐인데, 판단해야 하는 대상은 모집단(population) 수준의 성능이기 때문이다.</p>
+          </div>
+        </section>
+
+        <section class="section-card" id="risk">
+          <div class="section-head">
+            <div class="section-kicker">Step 2</div>
+            <h2 class="section-title">True Risk vs Empirical Risk</h2>
+          </div>
+          <div class="section-body">
+            <p>진짜 성능은 데이터 분포 전체에 대한 평균 손실로 측정된다.</p>
+
+            <div class="formula">
+              $$
+              R(h)=\mathbb E_{(x,y)\sim P_{XY}}[\ell(y,h(x))]
+              $$
+            </div>
+
+            <p>이것이 <b>true risk</b>다. 하지만 실제로는 \(P_{XY}\)를 모르므로 이 값을 직접 계산할 수 없다.</p>
+
+            <p>그래서 훈련 데이터에서 계산 가능한 양을 대신 사용한다.</p>
+
+            <div class="formula">
+              $$
+              L(h;D)=\frac{1}{n}\sum_{i=1}^{n}\ell(y_i,h(x_i))
+              $$
+            </div>
+
+            <p>이것이 <b>empirical risk</b>다.</p>
+
+            <div class="note">
+              True risk는 population average이고, empirical risk는 sample average다.
+            </div>
+
+            <p>따라서 학습의 실제 전략은 “직접 볼 수 없는 true risk를, 관측 가능한 empirical risk로 얼마나 잘 대체할 수 있는가”의 문제라고 볼 수 있다.</p>
+          </div>
+        </section>
+
+        <section class="section-card" id="erm">
+          <div class="section-head">
+            <div class="section-kicker">Step 3</div>
+            <h2 class="section-title">왜 ERM을 쓰는가</h2>
+          </div>
+          <div class="section-body">
+            <p>우리는 true risk를 직접 최소화할 수 없으므로, 대신 empirical risk를 최소화한다.</p>
+
+            <div class="formula">
+              $$
+              \hat h_{\mathcal H}=\arg\min_{h\in\mathcal H}L(h;D)
+              $$
+            </div>
+
+            <div class="quote">
+              ERM은 “지금 가진 표본에서 평균적으로 가장 덜 틀리는 모델을 고르자”는 원리다.
+            </div>
+
+            <p>이게 말이 되는 이유는 empirical risk가 true risk의 근사 역할을 하기 때문이다.</p>
+
+            <div class="formula">
+              $$
+              L(h;D)\to R(h)\qquad(n\to\infty)
+              $$
+            </div>
+
+            <p>표본 수가 많아질수록 sample average가 population average에 가까워진다. 그래서 true risk를 직접 볼 수 없더라도, empirical risk를 잘 다루면 true risk를 간접적으로 통제할 수 있다는 기대가 생긴다.</p>
+
+            <div class="summary-box">
+              즉, ERM은 “모르는 대상을 직접 최적화할 수 없을 때, 관측 가능한 근사량을 최적화하자”는 매우 자연스러운 선택이다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="overfitting">
+          <div class="section-head">
+            <div class="section-kicker">Step 4</div>
+            <h2 class="section-title">왜 과적합이 생기는가</h2>
+          </div>
+          <div class="section-body">
+            <p>문제는 훈련 오차가 작다고 해서 진짜 오차도 작아지는 것은 아니라는 점이다.</p>
+
+            <div class="formula">
+              $$
+              L(h;D)\ll R(h)
+              $$
+            </div>
+
+            <p>이 상황이 바로 <b>overfitting</b>이다.</p>
+
+            <div class="warn">
+              training error를 0으로 만드는 규칙이 항상 좋은 predictor는 아니다.
+            </div>
+
+            <p>예를 들어 모델이 훈련셋을 그냥 외워버리면 훈련셋에서는 완벽하지만, 새로운 데이터에서는 매우 못할 수 있다. 따라서 우리는 단순히 training error만 보는 것이 아니라, 훈련 성능과 실제 성능 사이의 차이를 함께 봐야 한다.</p>
+
+            <div class="formula">
+              $$
+              \text{generalization gap} \;=\; L(h;D)-R(h)
+              $$
+            </div>
+
+            <p>결국 핵심은 “훈련셋에서 잘 맞는가”가 아니라 “훈련셋에서 잘 맞는 정도가 unseen data에서도 유지되는가”다.</p>
+          </div>
+        </section>
+
+        <section class="section-card" id="decomposition">
+          <div class="section-head">
+            <div class="section-kicker">Step 5</div>
+            <h2 class="section-title">오차를 어떻게 나누는가</h2>
+          </div>
+          <div class="section-body">
+            <p>최종 오차는 보통 두 부분으로 나눠서 본다.</p>
+
+            <div class="formula">
+              $$
+              R(\hat h_{\mathcal H})-R^*
+              =
+              \bigl(R(\hat h_{\mathcal H})-R_{\mathcal H}^*\bigr)
+              +
+              \bigl(R_{\mathcal H}^*-R^*\bigr)
+              $$
+            </div>
+
+            <p>이 분해는 왜 학습이 어려운지 아주 잘 보여준다. 데이터가 부족해서 생기는 문제와, 모델 클래스 자체가 부족해서 생기는 문제를 분리해서 볼 수 있기 때문이다.</p>
+
+            <div class="grid2">
+              <div class="mini-card">
+                <h3>Estimation Error</h3>
+                <p>데이터가 유한해서 생기는 오차다.</p>
+                <div class="formula">
+                  $$
+                  R(\hat h_{\mathcal H})-R_{\mathcal H}^*
+                  $$
+                </div>
+                <p>같은 가설공간 안에서도 표본이 적으면 잘못 고를 수 있다. 보통 데이터가 많아질수록 줄어드는 쪽이다.</p>
+              </div>
+
+              <div class="mini-card">
+                <h3>Approximation Error</h3>
+                <p>가설공간 \(\mathcal H\)가 너무 단순해서 생기는 오차다.</p>
+                <div class="formula">
+                  $$
+                  R_{\mathcal H}^*-R^*
+                  $$
+                </div>
+                <p>즉, 아무리 잘 골라도 표현 자체가 안 되는 경우다. 이건 데이터만 늘린다고 바로 해결되지 않는다.</p>
+              </div>
+            </div>
+
+            <div class="summary-box">
+              즉, 더 많은 데이터는 주로 estimation error를 줄이고, 더 좋은 hypothesis class는 approximation error를 줄인다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="takeaway">
+          <div class="section-head">
+            <div class="section-kicker">Wrap-up</div>
+            <h2 class="section-title">결론</h2>
+          </div>
+          <div class="section-body">
+            <div class="summary-box">
+              <p><b>Learning</b>은 훈련 오차를 줄이는 것만이 아니라, 제한된 hypothesis class 안에서 empirical risk를 최소화하고 그 결과가 unseen data에도 잘 일반화되게 만드는 과정이다.</p>
+            </div>
+
+            <div class="formula">
+              $$
+              \boxed{
+              \text{Learning}
+              =
+              \text{ERM over a restricted hypothesis class}
+              +
+              \text{generalization}
+              }
+              $$
+            </div>
+
+            <p>즉 Chapter 2의 핵심은 “왜 ERM이 필요한가”, “왜 그 자체로는 부족한가”, “그래서 hypothesis class와 generalization이 왜 중요한가”로 정리할 수 있다.</p>
+          </div>
+        </section>
+
+        <div class="footer">&copy; 2026 Machine Learning Notes</div>
+      </article>
     </main>
   </div>
 
   <script>
-    const searchInput = document.getElementById('searchInput');
-    const searchableItems = [...document.querySelectorAll('.searchable')];
-    const tocLinks = [...document.querySelectorAll('.toc-link')];
     const miniLinks = [...document.querySelectorAll('.mini-link')];
     const observedSections = [...document.querySelectorAll('.section-card')];
-
-    function applySearch(){
-      const keyword = searchInput.value.trim().toLowerCase();
-      searchableItems.forEach(item => {
-        const text = item.innerText.toLowerCase();
-        const visible = text.includes(keyword);
-        item.dataset.hidden = visible ? 'false' : 'true';
-      });
-    }
-
-    searchInput.addEventListener('input', applySearch);
-    applySearch();
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if(entry.isIntersecting){
           const id = entry.target.id;
-          tocLinks.forEach(link => {
-            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
-          });
           miniLinks.forEach(link => {
             link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
           });

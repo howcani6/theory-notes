@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NFL–UCB–EXP3–Yao: 한 덩어리 논리 체인 (PART 3)</title>
 
-  <!-- MathJax -->
   <script>
     window.MathJax = {
       tex: {
@@ -18,117 +17,407 @@
 
   <style>
     :root{
-      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
-      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
-      --muted:#64748b; --border:#e2e8f0;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --secondary:#3b82f6;
+      --accent:#f59e0b;
+      --bg:#f8fafc;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --soft:#eff6ff;
+      --soft2:#f8fafc;
+      --warn-bg:#fff7ed;
+      --warn-border:#fed7aa;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --shadow:0 10px 24px rgba(15,23,42,.06);
+      --radius:22px;
+      --sidebar-width:280px;
+
+      /* Custom colors for this document */
       --good:#16a34a; --warn:#f59e0b; --bad:#ef4444;
       --purple:#7c3aed;
     }
+
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-      background:var(--bg); color:var(--text); line-height:1.75;
-      margin:0; padding:22px;
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);
+      color:var(--text);
+      line-height:1.75;
     }
-    .container{max-width:1120px; margin:0 auto;}
 
-    header{
-      text-align:center; padding:50px 22px;
-      background:linear-gradient(135deg, var(--primary), var(--secondary));
-      color:#fff; border-radius:22px; margin-bottom:28px;
-    }
-    header h1{margin:0; font-size:2.15rem; letter-spacing:0.2px;}
-    header p{margin:12px 0 0; opacity:.92;}
+    a{color:inherit;text-decoration:none}
 
-    section{
-      background:var(--card); padding:0; border-radius:16px;
-      margin-bottom:18px; box-shadow:0 4px 12px rgba(0,0,0,.05);
-      border:1px solid var(--border); overflow:hidden;
+    .layout{
+      display:grid;
+      grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+      min-height:100vh;
     }
-    details{ width:100%; }
-    summary{
-      list-style:none; padding:22px 28px; cursor:pointer;
-      outline:none; transition: background 0.18s ease;
-    }
-    summary:hover{ background:#f1f5f9; }
-    summary::-webkit-details-marker{ display:none; }
 
-    h2{
-      display:flex; justify-content:space-between; align-items:center;
-      color:var(--primary); border-left:5px solid var(--secondary);
-      padding-left:14px; margin:0; font-size:1.3rem;
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      padding:22px 18px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);
     }
-    h2::after{
-      content:'->'; font-size:1.05rem; transition: transform .25s ease;
+
+    .sidebar h2{
+      margin:0 0 8px;
+      font-size:1.15rem;
+      color:var(--primary-dark);
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .sidebar p{
+      margin:0 0 18px;
       color:var(--muted);
+      font-size:.92rem;
     }
-    details[open] h2::after{ transform: rotate(90deg); }
 
-    .content{ padding:0 30px 30px 30px; }
-    h3{
-      color:var(--secondary); margin:24px 0 10px; font-size:1.15rem;
-      border-bottom:1px solid var(--border); padding-bottom:6px;
+    .side-group{margin-bottom:18px}
+    .side-label{
+      margin:0 0 10px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
     }
+
+    .side-links{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .mini-link{
+      display:block;
+      padding:9px 10px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:.92rem;
+      transition:.2s ease;
+    }
+
+    .mini-link:hover,
+    .mini-link.active{
+      background:#eff6ff;
+      color:var(--primary-dark);
+      border-color:#cfe0ff;
+    }
+
+    .content{
+      min-width:0;
+      padding:22px 28px 60px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:40px 30px;
+      border-radius:30px;
+      background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(37,99,235,.22);
+      margin-bottom:22px;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .hero::before{width:220px;height:220px;top:-90px;right:-40px}
+    .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
+
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{
+      margin:0;
+      font-size:2.2rem;
+      line-height:1.12;
+      letter-spacing:-.02em;
+    }
+
+    .hero p{
+      margin:12px 0 0;
+      opacity:.95;
+      max-width:760px;
+    }
+
+    .top-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
+    }
+
+    .summary-card .label{
+      font-size:.8rem;
+      color:var(--muted);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .summary-card .value{
+      margin-top:6px;
+      font-size:1rem;
+      font-weight:760;
+      line-height:1.5;
+    }
+
+    .article{
+      max-width:980px;
+      min-width:0;
+    }
+
+    .concept-card,
+    .section-card,
+    .flow-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
+    }
+
+    .concept-card,
+    .flow-card{
+      padding:18px 20px;
+      margin-bottom:18px;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .concept-card h3,
+    .flow-card h3{
+      margin:0 0 10px;
+      color:var(--primary-dark);
+      font-size:1.08rem;
+    }
+
+    .chip-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:.84rem;
+      font-weight:700;
+      color:#0f172a;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .flow-step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px 13px;
+    }
+
+    .flow-step .step{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.74rem;
+      font-weight:800;
+      color:var(--secondary);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .flow-step .title{
+      font-weight:780;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
+
+    .flow-step p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.55;
+    }
+
+    .section-card{
+      overflow:hidden;
+      margin-bottom:18px;
+      scroll-margin-top:24px;
+    }
+
+    .section-head{
+      padding:24px 26px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .section-head-left {
+      flex: 1;
+    }
+
+    .section-kicker{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--secondary);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:1.4rem;
+      font-weight:820;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+
+    .section-title::before{
+      content:"";
+      width:7px;
+      height:28px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--primary),var(--secondary));
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .section-body{padding:22px 28px 28px}
+    .section-body > :first-child{margin-top:0}
+
+    h3{
+      margin:22px 0 10px;
+      font-size:1.1rem;
+      color:var(--secondary);
+    }
+    
     h4{
-      margin:18px 0 8px; font-size:1rem; color:#0f172a;
-      font-weight:900;
+      margin:18px 0 8px; font-size:1rem; color:#0f172a; font-weight:800;
+    }
+
+    p{margin:10px 0}
+    ul, ol{margin:10px 0 10px 20px;padding:0}
+    li{margin:6px 0}
+
+    .quote,
+    .interpretation,
+    .summary-box{
+      border-radius:16px;
+      padding:16px 18px;
+      margin:16px 0;
     }
 
     .quote{
-      background:#eff6ff; border-left:4px solid var(--secondary);
-      padding:12px 16px; border-radius:12px; margin:14px 0;
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
       font-style:italic;
     }
-    .formula{
-      background:#f1f5f9; padding:14px 14px; border-radius:12px;
-      margin:14px 0; overflow-x:auto; border:1px solid var(--border);
-    }
+
     .interpretation{
-      background:#f8fafc; padding:14px; border-radius:12px;
-      border:1px dashed var(--secondary); margin:14px 0;
+      background:#f8fafc;
+      border:1px dashed var(--secondary);
     }
-    .interpretation b{ color:var(--secondary); }
+    .interpretation b { color:var(--secondary); }
+
+    .summary-box{
+      background:var(--success-bg);
+      border:1px solid var(--success-border);
+    }
 
     .step-box{
       border-left:3px solid var(--accent);
-      background:#fffcf5; padding:14px; margin:12px 0;
-      border-radius:0 12px 12px 0;
+      background:#fffcf5; padding:14px 18px; margin:12px 0;
+      border-radius:0 16px 16px 0;
     }
 
+    .formula{
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      margin:16px 0;
+      overflow-x:auto;
+    }
+
+    /* Custom Pills for this doc */
     .pill{
-      display:inline-block; padding:2px 10px; border-radius:999px;
-      font-size:.86rem; font-weight:900; margin-left:8px;
+      display:inline-block; padding:4px 12px; border-radius:999px;
+      font-size:.86rem; font-weight:800; margin-left:8px;
       background:#e2e8f0; color:#0f172a;
       vertical-align:middle;
+      white-space: nowrap;
     }
     .pill.split{ background:#fee2e2; color:#991b1b; }
     .pill.ucb{ background:#dcfce7; color:#166534; }
     .pill.exp3{ background:#ffedd5; color:#9a3412; }
     .pill.nfl{ background:#e0e7ff; color:#3730a3; }
     .pill.yao{ background:#ede9fe; color:#5b21b6; }
+    .pill.key{ background:#f1f5f9; color:#475569; }
 
-    ul{ margin:10px 0 10px 22px; }
-    ol{ margin:10px 0 10px 22px; }
-    li{ margin:6px 0; }
-
+    /* Custom layout bits */
     .grid{
-      display:grid; grid-template-columns:1fr; gap:10px;
+      display:grid; grid-template-columns:1fr; gap:14px; margin:14px 0;
     }
-    @media (min-width: 980px){
+    @media (min-width: 800px){
       .grid{ grid-template-columns:1fr 1fr; }
     }
     .card{
       border:1px solid var(--border); border-radius:14px;
-      padding:14px 14px; background:#fff;
+      padding:16px 18px; background:#fff;
     }
+    .card h3 { margin-top: 0; }
     .card b{ color:#0f172a; }
-    .muted{ color:var(--muted); }
 
     .chain{
       background:#0b1220; color:#e5e7eb;
-      border-radius:16px; padding:16px 16px; margin:14px 0;
+      border-radius:16px; padding:20px; margin:16px 0;
       overflow-x:auto;
       border:1px solid rgba(255,255,255,.08);
+      font-family: monospace;
+      font-size: 0.95rem;
+      line-height: 1.8;
     }
     .chain .k{ color:#93c5fd; font-weight:900; }
     .chain .a{ color:#fbbf24; font-weight:900; }
@@ -136,270 +425,425 @@
     .chain .g{ color:#86efac; font-weight:900; }
 
     .footer{
-      text-align:center; color:var(--muted); font-size:.9rem; margin:38px 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:28px;
+    }
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:static;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+      }
+      .content{padding:18px 16px 48px}
+    }
+
+    @media (max-width:900px){
+      .flow-grid{grid-template-columns:1fr 1fr}
+    }
+
+    @media (max-width:760px){
+      .top-summary{grid-template-columns:1fr}
+      .flow-grid{grid-template-columns:1fr}
+      .hero{padding:30px 22px}
+      .hero h1{font-size:1.9rem}
+      .section-head{padding:20px 20px 14px}
+      .section-body{padding:18px 20px 22px}
+      .section-title{font-size:1.22rem}
+      .pill { display: none; } /* Hide pills on mobile to save space if needed */
     }
   </style>
 </head>
-
 <body>
-<div class="container">
-  <header>
-    <h1>Chapter 5: The Bias-Complexity Tradeoff - PART 3</h1>
-    <p>“확률이 어디에 있냐”가 갈림길이고, “구분 불가능성”이 공통 뼈대다</p>
-  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Learning Theory</h2>
 
-  <section>
-    <details open>
-      <summary><h2>1) “확률이 어디에 있냐”가 왜 핵심이냐 <span class="pill split">1차 분기점</span></h2></summary>
-      <div class="content">
+      <div class="side-group">
+        <div class="side-label">Reading Map</div>
+        <div class="side-links">
+          <a class="mini-link" href="#sec1">1) “확률이 어디에 있냐”</a>
+          <a class="mini-link" href="#sec2">2) UCB와 좋은 사건</a>
+          <a class="mini-link" href="#sec3">3) EXP3와 마팅게일</a>
+          <a class="mini-link" href="#sec4">4) NFL과 구분 불가능성</a>
+          <a class="mini-link" href="#sec5">5) Yao의 역할</a>
+          <a class="mini-link" href="#sec6">6) 논리 체인 요약</a>
+          <a class="mini-link" href="#sec7">7) 직관 비유</a>
+        </div>
+      </div>
 
-        <div class="grid">
-          <div class="card">
-            <h3>(A) Stochastic bandit / PAC의 친절한 세계</h3>
-            <ul>
-              <li>데이터/보상이 분포에서 랜덤으로 나온다 (i.i.d.).</li>
-              <li>“세상이 던지는 동전”이 있고, 그 평균(모수)이 고정되어 있다.</li>
-            </ul>
+      <div class="side-group">
+        <div class="side-label">핵심 키워드</div>
+        <div class="side-links">
+          <a class="mini-link" href="#sec1">Stochastic vs Adversarial</a>
+          <a class="mini-link" href="#sec2">UCB (Concentration)</a>
+          <a class="mini-link" href="#sec3">EXP3 (Martingale)</a>
+          <a class="mini-link" href="#sec4">NFL (Indistinguishability)</a>
+          <a class="mini-link" href="#sec5">Yao's Minimax Principle</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>Chapter 5: The Bias-Complexity Tradeoff - PART 3</h1>
+          <p>“확률이 어디에 있냐”가 갈림길이고, “구분 불가능성”이 공통 뼈대다</p>
+        </div>
+      </header>
+
+      <section class="top-summary">
+        <div class="summary-card">
+          <div class="label">Core Concept 1</div>
+          <div class="value">환경의 확률적 특성에 따라 (Stochastic vs Adversarial) 접근법이 나뉨</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Core Concept 2</div>
+          <div class="value">UCB는 집중부등식 기반, EXP3는 마팅게일과 내부 랜덤성 기반 방어</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Core Concept 3</div>
+          <div class="value">NFL과 Yao 정리는 어떠한 학습기도 피할 수 없는 최악의 한계를 규명</div>
+        </div>
+      </section>
+
+      <article class="article">
+
+        <div class="flow-card">
+          <h3>논리 전개 Overview</h3>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <div class="step">1</div>
+              <div class="title">환경의 분기</div>
+              <p>세상의 확률적 가정이 통하느냐 마느냐에 따라 알고리즘의 성질이 갈린다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">2</div>
+              <div class="title">UCB / EXP3</div>
+              <p>통계적 믿음이 가능하면 UCB, 적대적이면 자체 랜덤성으로 EXP3를 사용.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">3</div>
+              <div class="title">NFL의 하한</div>
+              <p>어떤 가정도 주어지지 않는다면 모든 학습기는 실패할 수 있음을 증명한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">4</div>
+              <div class="title">Yao의 정리</div>
+              <p>랜덤 환경과 결정적 알고리즘의 최악 성능을 교환하여 하한 증명을 명쾌하게 만든다.</p>
+            </div>
+          </div>
+        </div>
+
+        <section class="section-card" id="sec1">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 1</div>
+              <h2 class="section-title">“확률이 어디에 있냐”가 왜 핵심이냐</h2>
+            </div>
+            <span class="pill split">1차 분기점</span>
+          </div>
+          <div class="section-body">
+            
+            
+
+            <div class="grid">
+              <div class="card">
+                <h3>(A) Stochastic bandit / PAC의 친절한 세계</h3>
+                <ul>
+                  <li>데이터/보상이 분포에서 랜덤으로 나온다 (i.i.d.).</li>
+                  <li>“세상이 던지는 동전”이 있고, 그 평균(모수)이 고정되어 있다.</li>
+                </ul>
+                <div class="formula">
+                  $$\hat\mu_i(t)\approx \mu_i
+                  \quad(\text{표본평균이 진짜평균에 붙는다})$$
+                </div>
+                <div class="interpretation">
+                  <b>핵심</b><br/>
+                  집중부등식은 “환경이 만든 랜덤성”을 이용해 \(\hat\mu\)가 \(\mu\)에 가까움을 높은 확률로 보장한다.
+                </div>
+              </div>
+
+              <div class="card">
+                <h3>(B) Adversarial bandit / NFL의 비친절한 세계</h3>
+                <ul>
+                  <li>환경이 i.i.d.가 아닐 수 있다.</li>
+                  <li>심하면 매 라운드마다 적대자가 보상을 정한다.</li>
+                  <li>그러면 \(\mu_i\) 같은 “고정 평균” 개념 자체가 무너진다.</li>
+                </ul>
+                <div class="formula">
+                  $$|\hat\mu_i(t)-\mu_i|\le r(t)$$
+                </div>
+                <div class="interpretation">
+                  <b>결론</b><br/>
+                  위 문장을 쓸 기반(고정된 \(\mu_i\), i.i.d.)이 없어서, UCB식 good-event 논리가 출발하지 못한다.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="sec2">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 2</div>
+              <h2 class="section-title">UCB는 왜 “좋은 사건”으로 증명하고, 그게 왜 가능한가</h2>
+            </div>
+            <span class="pill ucb">UCB</span>
+          </div>
+          <div class="section-body">
+            
+            
+
+            <h3>UCB 고전 증명의 골격</h3>
+            <ol>
+              <li>모든 팔 \(i\), 모든 시점 \(t\)에 대해 “좋은 사건”</li>
+            </ol>
             <div class="formula">
-              $$\hat\mu_i(t)\approx \mu_i
-              \quad(\text{표본평균이 진짜평균에 붙는다})$$
+              $$G:=\{|\hat\mu_i(t)-\mu_i|\le r_i(t)\ \text{가 항상 성립}\}$$
             </div>
-            <div class="interpretation">
-              <b>핵심</b><br/>
-              집중부등식은 “환경이 만든 랜덤성”을 이용해
-              \(\hat\mu\)가 \(\mu\)에 가까움을 높은 확률로 보장한다.
-            </div>
-          </div>
+            <ol start="2">
+              <li>Hoeffding 등으로 \(\Pr(G^c)\)가 매우 작음을 보장 (i.i.d.가 주는 선물)</li>
+              <li>사건 \(G\) 안에서는</li>
+            </ol>
 
-          <div class="card">
-            <h3>(B) Adversarial bandit / NFL의 비친절한 세계</h3>
+            <div class="step-box">
+              <ul>
+                <li>최적팔의 UCB는 충분히 크고</li>
+                <li>나쁜 팔은 충분히 뽑히면 UCB가 내려가서</li>
+                <li>더 이상 선택되지 못함</li>
+              </ul>
+              <div class="formula">
+                $$\Rightarrow\ \text{regret가 로그로 묶임}$$
+              </div>
+            </div>
+
+            <div class="interpretation">
+              <b>정리</b><br/>
+              UCB는 “환경이 확률적”이라서 좋은 사건이 거의 항상 일어난다는 점에 의존한다.
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="sec3">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 3</div>
+              <h2 class="section-title">EXP3는 왜 “잠재함수+마팅게일”로 가나</h2>
+            </div>
+            <span class="pill exp3">EXP3</span>
+          </div>
+          <div class="section-body">
+            
+            
+
+            <h3>왜 good-event가 막히나?</h3>
             <ul>
-              <li>환경이 i.i.d.가 아닐 수 있다.</li>
-              <li>심하면 매 라운드마다 적대자가 보상을 정한다.</li>
-              <li>그러면 \(\mu_i\) 같은 “고정 평균” 개념 자체가 무너진다.</li>
+              <li>환경이 만드는 랜덤성이 없거나 믿을 수 없다.</li>
+              <li>그래서 “표본평균이 진짜평균에 붙는다” 같은 사건 \(G\)를 만들 수 없다.</li>
             </ul>
+
+            <h3>EXP3의 전략</h3>
+            <ol>
+              <li>알고리즘이 스스로 랜덤하게 팔을 뽑아 랜덤성을 내부에서 생성</li>
+              <li>관측을 importance weighting(IPW)으로 추정</li>
+            </ol>
+
             <div class="formula">
-              $$|\hat\mu_i(t)-\mu_i|\le r(t)$$
+              $$\hat\ell_t(i)=\frac{\ell_t(i)\mathbf1\{I_t=i\}}{p_t(i)}$$
             </div>
+
+            <ol start="3">
+              <li>이 추정치는 조건부로 불편</li>
+            </ol>
+            <div class="formula">
+              $$\mathbb E[\hat\ell_t(i)\mid \mathcal F_{t-1}] = \ell_t(i)$$
+            </div>
+
+            <ol start="4">
+              <li>그래서 \(\hat\ell_t(i)-\ell_t(i)\)는 마팅게일 차이</li>
+              <li>잠재함수(가중치 합의 로그 등)로 누적 손실 차이를 제어</li>
+            </ol>
+
+            <div class="formula">
+              $$\Rightarrow\ \text{regret가 } \tilde O(\sqrt{T}) \text{로 묶임}$$
+            </div>
+
             <div class="interpretation">
-              <b>결론</b><br/>
-              위 문장을 쓸 기반(고정된 \(\mu_i\), i.i.d.)이 없어서,
-              UCB식 good-event 논리가 출발하지 못한다.
+              <b>정리</b><br/>
+              EXP3는 “환경을 믿지 않고”, 오직 “내 랜덤 선택이 만든 통계적 성질”만 믿는다.
             </div>
+
           </div>
-        </div>
+        </section>
 
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>2) UCB는 왜 “좋은 사건”으로 증명하고, 그게 왜 가능한가 <span class="pill ucb">UCB</span></h2></summary>
-      <div class="content">
-
-        <h3>UCB 고전 증명의 골격</h3>
-        <ol>
-          <li>모든 팔 \(i\), 모든 시점 \(t\)에 대해 “좋은 사건”</li>
-        </ol>
-        <div class="formula">
-          $$G:=\{|\hat\mu_i(t)-\mu_i|\le r_i(t)\ \text{가 항상 성립}\}$$
-        </div>
-        <ol start="2">
-          <li>Hoeffding 등으로 \(\Pr(G^c)\)가 매우 작음을 보장 (i.i.d.가 주는 선물)</li>
-          <li>사건 \(G\) 안에서는</li>
-        </ol>
-
-        <div class="step-box">
-          <ul>
-            <li>최적팔의 UCB는 충분히 크고</li>
-            <li>나쁜 팔은 충분히 뽑히면 UCB가 내려가서</li>
-            <li>더 이상 선택되지 못함</li>
-          </ul>
-          <div class="formula">
-            $$\Rightarrow\ \text{regret가 로그로 묶임}$$
+        <section class="section-card" id="sec4">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 4</div>
+              <h2 class="section-title">NFL이 왜 adversarial 하한과 같은 구조냐: “구분 불가능성”</h2>
+            </div>
+            <span class="pill nfl">NFL</span>
           </div>
+          <div class="section-body">
+            
+            <h3>NFL 증명에서 한 일(핵심 뼈대)</h3>
+            <ul>
+              <li>학습기는 훈련 데이터 \(m\)개만 봄</li>
+              <li>입력 공간을 크게 만들어 안 본 입력이 많게 함</li>
+              <li>“훈련 데이터는 동일”하게 유지하면서</li>
+              <li>안 본 입력에서만 라벨을 뒤집은 \(f\)와 \(f'\)를 만들어</li>
+              <li>알고리즘이 두 세계를 구분 못하게 함</li>
+            </ul>
+
+            <div class="quote">
+              “네 정보(관측)로는 구분 불가능한 두 세계가 있고, 적대자는 그 중 너에게 불리한 세계를 골라버릴 수 있다.”
+            </div>
+
+            <h3>bandit 하한과의 1:1 대응 직관</h3>
+            <ul>
+              <li>알고리즘이 거의 탐색하지 않은 팔이 있으면</li>
+              <li>적대자는 그 팔을 “사실은 좋은 팔”로 만들어버리거나</li>
+              <li>두 시나리오를 섞어 구분을 더 어렵게 만들 수 있다</li>
+              <li>→ 그래서 regret 하한이 생긴다</li>
+            </ul>
+
+            <div class="interpretation">
+              <b>핵심 공통점</b><br/>
+              둘 다 본질은 “구분 불가능성(indistinguishability)”이다.
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="sec5">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 5</div>
+              <h2 class="section-title">Yao는 여기서 무슨 역할? — “확률의 주체”를 바꾸는 정리</h2>
+            </div>
+            <span class="pill yao">Yao</span>
+          </div>
+          <div class="section-body">
+
+            <h3>하한 증명에서의 난제</h3>
+            <ul>
+              <li>알고리즘이 랜덤이면, 적대자가 그 랜덤성을 아는지/모르는지에 따라 케이스가 지저분해짐</li>
+              <li>“최악”을 정의하는 방식이 복잡해진다</li>
+            </ul>
+
+            <h3>Yao의 핵심 문장(역할)</h3>
+            <div class="quote">
+              랜덤 알고리즘의 최악 성능 하한을 보이려면, 랜덤 입력(환경) 분포 하나를 고르고, 결정적 알고리즘에 대한 평균 성능만 분석해도 된다.
+            </div>
+
+            <h3>직관: 확률의 주체를 바꾼다</h3>
+            <ul>
+              <li>알고리즘이 동전 던지는 대신</li>
+              <li>환경이 동전 던지게 만들어도</li>
+              <li>하한은 피할 수 없다</li>
+            </ul>
+
+            <h3>NFL에서의 “Yao 느낌”</h3>
+            <ul>
+              <li>정답함수 \(f_i\)들을 균등하게 랜덤 선택하는 분포를 만든 다음</li>
+              <li>어떤 알고리즘도 평균적으로 큰 오차를 갖는다는 걸 보임</li>
+            </ul>
+
+            <div class="interpretation">
+              <b>패턴</b><br/>
+              “환경을 랜덤하게 섞어” 알고리즘이 구분 못하게 만든다 → 평균 실패를 보인다 → 최악 실패 하한.
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="sec6">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 6</div>
+              <h2 class="section-title">최종 요약이 왜 성립하나: 논리 체인</h2>
+            </div>
+            <span class="pill key">Chain</span>
+          </div>
+          <div class="section-body">
+
+            <div class="chain">
+              <div><span class="k">1.</span> <span class="p">NFL</span>: 어떤 가정도 없으면(모든 분포/모든 함수 허용) 학습 불가</div>
+              <div><span class="k">2.</span> 현실에서 학습하려면 가정(prior)을 넣어야 한다</div>
+              <div style="margin-left:18px;">• PAC에서는 <span class="a">\(\mathcal H\)</span> 제한</div>
+              <div style="margin-left:18px;">• bandit에서는 <span class="a">i.i.d./stochastic</span> 가정 등</div>
+              <div><span class="k">3.</span> 그 가정이 있으면 <span class="g">UCB</span> 같은 good-event 증명이 가능</div>
+              <div><span class="k">4.</span> 그 가정이 없으면 <span class="a">EXP3</span> 같은 minimax(최악 대비) 증명만 가능</div>
+              <div><span class="k">5.</span> 그리고 이 “하한/최악 대비”를 깔끔하게 하는 도구가 <span class="p">Yao</span></div>
+            </div>
+
+            <div class="formula">
+              $$\textbf{UCB: stochastic + concentration}$$
+            </div>
+            <div class="formula">
+              $$\textbf{EXP3: adversarial + minimax}$$
+            </div>
+            <div class="formula">
+              $$\textbf{NFL: “가정 없으면 불가능” 하한}$$
+            </div>
+            <div class="formula">
+              $$\textbf{Yao: 그 하한을 증명하는 프레임(확률 주체 교환)}$$
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="sec7">
+          <div class="section-head">
+            <div class="section-head-left">
+              <div class="section-kicker">Step 7</div>
+              <h2 class="section-title">직관 비유(딱 하나)</h2>
+            </div>
+            <span class="pill key">One Metaphor</span>
+          </div>
+          <div class="section-body">
+            <ul>
+              <li><b>UCB</b>: “세상이 주사위를 굴린다” → 통계로 평균을 맞출 수 있음</li>
+              <li><b>EXP3</b>: “세상이 너를 속일 수도 있다” → 네 랜덤성으로만 방어</li>
+              <li><b>NFL</b>: “세상은 아무 가정도 안 된다” → 반드시 실패하는 케이스 존재</li>
+              <li><b>Yao</b>: “알고리즘 랜덤 vs 세상 랜덤”의 최악을 동일 프레임으로 정리</li>
+            </ul>
+          </div>
+        </section>
+
+        <div class="footer">
+          &copy; 2026 Learning Theory Notes — Chapter 5
         </div>
-
-        <div class="interpretation">
-          <b>정리</b><br/>
-          UCB는 “환경이 확률적”이라서 좋은 사건이 거의 항상 일어난다는 점에 의존한다.
-        </div>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>3) EXP3는 왜 “좋은 사건”이 아니라 “잠재함수+마팅게일”로 가나 <span class="pill exp3">EXP3</span></h2></summary>
-      <div class="content">
-
-        <h3>왜 good-event가 막히나?</h3>
-        <ul>
-          <li>환경이 만드는 랜덤성이 없거나 믿을 수 없다.</li>
-          <li>그래서 “표본평균이 진짜평균에 붙는다” 같은 사건 \(G\)를 만들 수 없다.</li>
-        </ul>
-
-        <h3>EXP3의 전략</h3>
-        <ol>
-          <li>알고리즘이 스스로 랜덤하게 팔을 뽑아 랜덤성을 내부에서 생성</li>
-          <li>관측을 importance weighting(IPW)으로 추정</li>
-        </ol>
-
-        <div class="formula">
-          $$\hat\ell_t(i)=\frac{\ell_t(i)\mathbf1\{I_t=i\}}{p_t(i)}$$
-        </div>
-
-        <ol start="3">
-          <li>이 추정치는 조건부로 불편</li>
-        </ol>
-        <div class="formula">
-          $$\mathbb E[\hat\ell_t(i)\mid \mathcal F_{t-1}] = \ell_t(i)$$
-        </div>
-
-        <ol start="4">
-          <li>그래서 \(\hat\ell_t(i)-\ell_t(i)\)는 마팅게일 차이</li>
-          <li>잠재함수(가중치 합의 로그 등)로 누적 손실 차이를 제어</li>
-        </ol>
-
-        <div class="formula">
-          $$\Rightarrow\ \text{regret가 } \tilde O(\sqrt{T}) \text{로 묶임}$$
-        </div>
-
-        <div class="interpretation">
-          <b>정리</b><br/>
-          EXP3는 “환경을 믿지 않고”, 오직 “내 랜덤 선택이 만든 통계적 성질”만 믿는다.
-        </div>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>4) NFL이 왜 adversarial 하한과 같은 구조냐: “구분 불가능성” <span class="pill nfl">NFL</span></h2></summary>
-      <div class="content">
-
-        <h3>NFL 증명에서 한 일(핵심 뼈대)</h3>
-        <ul>
-          <li>학습기는 훈련 데이터 \(m\)개만 봄</li>
-          <li>입력 공간을 크게 만들어 안 본 입력이 많게 함</li>
-          <li>“훈련 데이터는 동일”하게 유지하면서</li>
-          <li>안 본 입력에서만 라벨을 뒤집은 \(f\)와 \(f'\)를 만들어</li>
-          <li>알고리즘이 두 세계를 구분 못하게 함</li>
-        </ul>
-
-        <div class="quote">
-          “네 정보(관측)로는 구분 불가능한 두 세계가 있고, 적대자는 그 중 너에게 불리한 세계를 골라버릴 수 있다.”
-        </div>
-
-        <h3>bandit 하한과의 1:1 대응 직관</h3>
-        <ul>
-          <li>알고리즘이 거의 탐색하지 않은 팔이 있으면</li>
-          <li>적대자는 그 팔을 “사실은 좋은 팔”로 만들어버리거나</li>
-          <li>두 시나리오를 섞어 구분을 더 어렵게 만들 수 있다</li>
-          <li>→ 그래서 regret 하한이 생긴다</li>
-        </ul>
-
-        <div class="interpretation">
-          <b>핵심 공통점</b><br/>
-          둘 다 본질은 “구분 불가능성(indistinguishability)”이다.
-        </div>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>5) Yao는 여기서 무슨 역할? — “확률의 주체”를 바꾸는 정리 <span class="pill yao">Yao</span></h2></summary>
-      <div class="content">
-
-        <h3>하한 증명에서의 난제</h3>
-        <ul>
-          <li>알고리즘이 랜덤이면, 적대자가 그 랜덤성을 아는지/모르는지에 따라 케이스가 지저분해짐</li>
-          <li>“최악”을 정의하는 방식이 복잡해진다</li>
-        </ul>
-
-        <h3>Yao의 핵심 문장(역할)</h3>
-        <div class="quote">
-          랜덤 알고리즘의 최악 성능 하한을 보이려면,
-          랜덤 입력(환경) 분포 하나를 고르고,
-          결정적 알고리즘에 대한 평균 성능만 분석해도 된다.
-        </div>
-
-        <h3>직관: 확률의 주체를 바꾼다</h3>
-        <ul>
-          <li>알고리즘이 동전 던지는 대신</li>
-          <li>환경이 동전 던지게 만들어도</li>
-          <li>하한은 피할 수 없다</li>
-        </ul>
-
-        <h3>NFL에서의 “Yao 느낌”</h3>
-        <ul>
-          <li>정답함수 \(f_i\)들을 균등하게 랜덤 선택하는 분포를 만든 다음</li>
-          <li>어떤 알고리즘도 평균적으로 큰 오차를 갖는다는 걸 보임</li>
-        </ul>
-
-        <div class="interpretation">
-          <b>패턴</b><br/>
-          “환경을 랜덤하게 섞어” 알고리즘이 구분 못하게 만든다 → 평균 실패를 보인다 → 최악 실패 하한.
-        </div>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>6) 최종 요약이 왜 성립하나: 논리 체인 <span class="pill key">Chain</span></h2></summary>
-      <div class="content">
-
-        <div class="chain">
-          <div><span class="k">1.</span> <span class="p">NFL</span>: 어떤 가정도 없으면(모든 분포/모든 함수 허용) 학습 불가</div>
-          <div><span class="k">2.</span> 현실에서 학습하려면 가정(prior)을 넣어야 한다</div>
-          <div style="margin-left:18px;">• PAC에서는 <span class="a">\(\mathcal H\)</span> 제한</div>
-          <div style="margin-left:18px;">• bandit에서는 <span class="a">i.i.d./stochastic</span> 가정 등</div>
-          <div><span class="k">3.</span> 그 가정이 있으면 <span class="g">UCB</span> 같은 good-event 증명이 가능</div>
-          <div><span class="k">4.</span> 그 가정이 없으면 <span class="a">EXP3</span> 같은 minimax(최악 대비) 증명만 가능</div>
-          <div><span class="k">5.</span> 그리고 이 “하한/최악 대비”를 깔끔하게 하는 도구가 <span class="p">Yao</span></div>
-        </div>
-
-        <div class="formula">
-          $$\textbf{UCB: stochastic + concentration}$$
-        </div>
-        <div class="formula">
-          $$\textbf{EXP3: adversarial + minimax}$$
-        </div>
-        <div class="formula">
-          $$\textbf{NFL: “가정 없으면 불가능” 하한}$$
-        </div>
-        <div class="formula">
-          $$\textbf{Yao: 그 하한을 증명하는 프레임(확률 주체 교환)}$$
-        </div>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>7) 직관 비유(딱 하나) <span class="pill key">One Metaphor</span></h2></summary>
-      <div class="content">
-        <ul>
-          <li><b>UCB</b>: “세상이 주사위를 굴린다” → 통계로 평균을 맞출 수 있음</li>
-          <li><b>EXP3</b>: “세상이 너를 속일 수도 있다” → 네 랜덤성으로만 방어</li>
-          <li><b>NFL</b>: “세상은 아무 가정도 안 된다” → 반드시 실패하는 케이스 존재</li>
-          <li><b>Yao</b>: “알고리즘 랜덤 vs 세상 랜덤”의 최악을 동일 프레임으로 정리</li>
-        </ul>
-      </div>
-    </details>
-  </section>
-
-  <div class="footer">
-    &copy; 2026 Learning Theory Notes — Chapter 5
+      </article>
+    </main>
   </div>
-</div>
+
+  <script>
+    const miniLinks = [...document.querySelectorAll('.mini-link')];
+    const observedSections = [...document.querySelectorAll('.section-card')];
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          miniLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      rootMargin:'-20% 0px -60% 0px',
+      threshold:0.05
+    });
+
+    observedSections.forEach(section => observer.observe(section));
+  </script>
 </body>
 </html>

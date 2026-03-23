@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ε-greedy (time-varying εₜ) — Regret Bound Proof Note</title>
 
-  <!-- MathJax -->
   <script>
     window.MathJax = {
       tex: {
@@ -18,442 +17,895 @@
 
   <style>
     :root{
-      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
-      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
-      --muted:#64748b; --border:#e2e8f0;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --secondary:#3b82f6;
+      --bg:#f8fafc;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --soft:#eff6ff;
+      --soft2:#f8fafc;
+      --warn-bg:#fff7ed;
+      --warn-border:#fed7aa;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --shadow:0 10px 24px rgba(15,23,42,.06);
+      --radius:22px;
+      --sidebar-width:280px;
     }
+
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-      background:var(--bg); color:var(--text); line-height:1.7;
-      margin:0; padding:22px;
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);
+      color:var(--text);
+      line-height:1.72;
     }
-    .container{max-width:1080px; margin:0 auto;}
-    header{
-      text-align:center; padding:50px 20px;
-      background:linear-gradient(135deg, var(--primary), var(--secondary));
-      color:#fff; border-radius:20px; margin-bottom:30px;
-    }
-    header h1{margin:0; font-size:2.2rem;}
-    header p{margin:10px 0 0; opacity:.9;}
 
-    section{
-      background:var(--card); padding:0; border-radius:15px;
-      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
-      border:1px solid var(--border); overflow:hidden;
-    }
-    details{width:100%}
-    summary{
-      list-style:none; padding:22px 28px; cursor:pointer;
-    }
-    summary::-webkit-details-marker{display:none}
-    summary:hover{background:#f1f5f9}
+    a{color:inherit;text-decoration:none}
 
-    h2{
-      display:flex; justify-content:space-between; align-items:center;
-      color:var(--primary); border-left:5px solid var(--secondary);
-      padding-left:14px; margin:0; font-size:1.4rem;
+    .layout{
+      display:grid;
+      grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+      min-height:100vh;
     }
-    h2::after{
-      content:'>'; color:var(--muted); transition:.3s;
-    }
-    details[open] h2::after{transform:rotate(90deg)}
 
-    .content{padding:0 30px 30px 30px}
-    h3{color:var(--secondary); margin:26px 0 10px; border-bottom:1px solid var(--border); padding-bottom:6px;}
-    h4{margin:18px 0 8px; font-weight:800; color:#0f172a}
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      padding:22px 18px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);
+    }
+
+    .sidebar h2{
+      margin:0 0 8px;
+      font-size:1.15rem;
+      color:var(--primary-dark);
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .sidebar p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .side-group{margin-bottom:18px}
+    .side-label{
+      margin:0 0 10px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .side-links{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .mini-link{
+      display:block;
+      padding:9px 10px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:.92rem;
+      transition:.2s ease;
+    }
+
+    .mini-link:hover,
+    .mini-link.active{
+      background:#eff6ff;
+      color:var(--primary-dark);
+      border-color:#cfe0ff;
+    }
+
+    .content{
+      min-width:0;
+      padding:22px 28px 60px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:40px 30px;
+      border-radius:30px;
+      background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(37,99,235,.22);
+      margin-bottom:22px;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .hero::before{width:220px;height:220px;top:-90px;right:-40px}
+    .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
+
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{
+      margin:0;
+      font-size:2.2rem;
+      line-height:1.12;
+      letter-spacing:-.02em;
+    }
+
+    .hero p{
+      margin:12px 0 0;
+      opacity:.95;
+      max-width:760px;
+    }
+
+    .top-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
+    }
+
+    .summary-card .label{
+      font-size:.8rem;
+      color:var(--muted);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .summary-card .value{
+      margin-top:6px;
+      font-size:1rem;
+      font-weight:760;
+      line-height:1.5;
+    }
+
+    .article{
+      max-width:980px;
+      min-width:0;
+    }
+
+    .concept-card,
+    .section-card,
+    .flow-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:0 4px 10px rgba(15,23,42,.05);
+    }
+
+    .concept-card,
+    .flow-card{
+      padding:18px 20px;
+      margin-bottom:18px;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .concept-card h3,
+    .flow-card h3{
+      margin:0 0 10px;
+      color:var(--primary-dark);
+      font-size:1.08rem;
+    }
+
+    .chip-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:.84rem;
+      font-weight:700;
+      color:#0f172a;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .flow-step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px 13px;
+    }
+
+    .flow-step .step{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.74rem;
+      font-weight:800;
+      color:var(--secondary);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .flow-step .title{
+      font-weight:780;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
+
+    .flow-step p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.55;
+    }
+
+    .section-card{
+      overflow:hidden;
+      margin-bottom:18px;
+      scroll-margin-top:24px;
+    }
+
+    .section-head{
+      padding:24px 26px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .section-kicker{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--secondary);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:1.4rem;
+      font-weight:820;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+
+    .section-title::before{
+      content:"";
+      width:7px;
+      height:28px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--primary),var(--secondary));
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .section-body{padding:22px 28px 28px}
+    .section-body > :first-child{margin-top:0}
+
+    h3{
+      margin:22px 0 10px;
+      font-size:1.1rem;
+      color:var(--secondary);
+    }
+
+    p{margin:10px 0}
+    ul{margin:10px 0 0 20px;padding:0}
+    li{margin:6px 0}
+
+    .quote,
+    .note,
+    .warn,
+    .summary-box{
+      border-radius:16px;
+      padding:16px 18px;
+      margin:16px 0;
+    }
 
     .quote{
-      background:#eff6ff; border-left:4px solid var(--secondary);
-      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      font-style:italic;
     }
+
+    .note{
+      background:#f8fafc;
+      border:1px solid var(--border);
+    }
+
+    .warn{
+      background:var(--warn-bg);
+      border:1px solid var(--warn-border);
+      color:#9a3412;
+      font-weight:600;
+    }
+
+    .summary-box{
+      background:var(--success-bg);
+      border:1px solid var(--success-border);
+    }
+
     .formula{
-      background:#f1f5f9; padding:15px; border-radius:10px;
-      margin:15px 0; border:1px solid var(--border); overflow-x:auto;
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      margin:16px 0;
+      overflow-x:auto;
     }
-    .interpretation{
-      background:#f8fafc; padding:15px; border-radius:10px;
-      border:1px dashed var(--secondary); margin:15px 0;
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
     }
-    .interpretation b{color:var(--secondary)}
-    .step-box{
-      border-left:3px solid var(--accent); background:#fffcf5;
-      padding:15px; margin:15px 0; border-radius:0 10px 10px 0;
+
+    .mini-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      background:#fff;
     }
-    .muted{color:var(--muted)}
+
     .footer{
-      text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0;
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:28px;
+    }
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:static;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+      }
+      .content{padding:18px 16px 48px}
+    }
+
+    @media (max-width:900px){
+      .flow-grid{grid-template-columns:1fr 1fr}
+    }
+
+    @media (max-width:760px){
+      .top-summary{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .flow-grid{grid-template-columns:1fr}
+      .hero{padding:30px 22px}
+      .hero h1{font-size:1.9rem}
+      .section-head{padding:20px 20px 14px}
+      .section-body{padding:18px 20px 22px}
+      .section-title{font-size:1.22rem}
     }
   </style>
 </head>
-
 <body>
-<div class="container">
-
-<header>
-  <h1>ε-greedy Regret Bound</h1>
-  <p>시간가변 \(\varepsilon_t\) 사용 시 표준 상계 논증 (원문 문제 포맷 반영)</p>
-</header>
-
-<section>
-<details open>
-<summary><h2>증명 흐름: Explore + Exploit 분해 → Good Event → 적분 상계</h2></summary>
-<div class="content">
-
-<p class="quote">
-“핵심은 두 덩어리다: (1) 탐험이 만든 직접 regret \(\sum \varepsilon_t\),
-(2) 탐욕이 틀릴 때의 regret(=gap)가 ‘추정오차 두 개’로 눌린다는 사실.”
-</p>
-
-<h3>0) 준비: 표본평균, gap, regret</h3>
-<ul>
-  <li>
-    <b>표본평균:</b><br/>
-    $$
-    \hat\mu_{j,t}:=\frac{\sum_{\tau=1}^t r_{j,\tau}\mathbf 1(a_\tau=j)}
-    {\sum_{\tau=1}^t \mathbf 1(a_\tau=j)}
-    $$
-  </li>
-
-  <li>
-    <b>최적 arm:</b><br/>
-    $$ i^*=\arg\max_i \mu_i,\qquad \mu^*=\mu_{i^*} $$
-  </li>
-
-  <li>
-    <b>gap:</b><br/>
-    $$ \Delta_i:=\mu^*-\mu_i \quad \text{for } i\neq i^* $$
-  </li>
-
-  <li>
-    <b>누적 regret:</b><br/>
-    $$
-    R(T)=\sum_{t=1}^T(\mu^*-\mu_{a_t})
-    =\sum_{t=1}^T \Delta_{a_t}
-    $$
-  </li>
-</ul>
-
-<div class="interpretation">
-  <b>메모</b><br/>
-  문제(슬라이드)에서는 “처음 \(N\)번은 각 arm을 1번씩 뽑는다”를 기본으로 깔고,
-  그 비용을 상수 \(N\)으로 먼저 더해준다.
-</div>
-
-<h3>1) regret를 Explore + Exploit로 분해 </h3>
-
-<div class="step-box">
-  ε-greedy는 시간 \(t\)에<br/>
-  - 확률 \(\varepsilon_t\): explore (균등 랜덤)<br/>
-  - 확률 \(1-\varepsilon_t\): exploit (\(\arg\max_j \hat\mu_{j,t}\))
-</div>
-
-<p>
-보상/손실이 \([0,1]\) 범위라고 두면, 한 번의 선택으로 생길 수 있는 regret는 최대 1이므로
-explore로 인한 기대 regret는 \(\varepsilon_t\cdot 1\)로 상계된다.
-</p>
-
-<div class="formula">
-$$
-\mathbb E[R(T)]
-\le N + \sum_{t=N+1}^T \varepsilon_t
-+\sum_{t=N+1}^T (1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\,
-\Pr\!\left(i=\arg\max_{j\in[N]}\hat\mu_{j,t}\right).
-$$
-</div>
-
-<div class="interpretation">
-  <b>여기서 중요한 건 “exploit 쪽”</b><br/>
-  exploit에서 suboptimal \(i\neq i^*\)가 선택되는 확률을 어떻게 제어하느냐가 핵심이며,
-  그게 다음의 “표본 수 하한 + Hoeffding”으로 이어진다.
-</div>
-
-<h3>2) 탐험이 만드는 표본 수 하한: \(\sum \mathbf 1(a_\tau=i)\) 제어</h3>
-
-<p>
-각 arm \(i\)의 누적 선택 횟수를
-</p>
-
-$$
-n_i(t):=\sum_{\tau=1}^t \mathbf 1(a_\tau=i)
-$$
-
-<p>
-라고 하자. exploit이 한 arm에 쏠리면 어떤 arm은 거의 뽑히지 않을 수 있으니,
-최악을 막는 장치가 explore(균등 랜덤)이다.
-</p>
-
-
-<div class="step-box">
-  <b>핵심 관찰</b><br/>
-  시간 \(\tau\)에 explore가 일어나면 arm \(i\)가 뽑힐 확률은 \(\frac1N\).<br/>
-  따라서 전체 확률로는 \(\Pr(a_\tau=i)\ge \varepsilon_\tau\cdot\frac1N\).
-</div>
-
-<div class="formula">
-$$
-\sum_{\tau=1}^t\mathbf 1(a_\tau=i)
-\ge \frac12\sum_{\tau=1}^t \Pr(a_\tau=i)
-\ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau.
-$$
-</div>
-
-<div class="interpretation">
-  <b>왜 “절반(1/2)”이 나오나?</b><br/>
-  \(\mathbf 1(a_\tau=i)\)는 베르누이들의 합이라 집중부등식(Chernoff 류)로
-  “실제 합이 기대합의 일정 비율(예: 1/2) 이상”임을 높은 확률로 보장할 수 있다.
-</div>
-
-<h3>3) 문제의 임계 구간: \(t\ge \frac{16}{\varepsilon_T}\log T\)</h3>
-
-<p>
-슬라이드에는 “모든 \(t\ge \frac{16}{\varepsilon_T}\log T\)에 대해 위 부등식이 동시에 성립” 같은 형태가 나오는데,
-이건 다음 두 가지 이유 때문이다.
-</p>
-
-<ul>
-  <li><b>이유 1</b>: \(t\)가 너무 작으면 \(\sum_{\tau\le t}\varepsilon_\tau\) 자체가 작아서 ‘표본 수 하한’이 약함</li>
-  <li><b>이유 2</b>: “모든 시간 \(t\)에 대해 동시에”를 만들려면 union bound가 들어가며 \(\log T\)가 필요</li>
-</ul>
-
-<div class="formula">
-$$
-\Pr\!\left(\bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
-\left\{\,\sum_{\tau=1}^t \mathbf 1(a_\tau=i)\ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau \right\}\right)
-\ge 1-\frac{1}{T}.
-$$
-</div>
-
-<div class="interpretation">
-  <b>포인트</b><br/>
-  여기서 \(1-\frac{1}{T}\) 같은 형태는 “시간축 전체에 대한 실패확률을 \(\frac1T\)로 맞추는” 전형적인 선택이다.
-  (상수 16은 해당 증명에서 Chernoff/union bound를 정리한 결과로 보면 된다.)
-</div>
-
-<h3>4) Hoeffding으로 표본평균 농도: 모든 \(t\)에 대한 동시 성립</h3>
-
-<p>
-보상이 \([0,1]\) 범위이면 (고정된 \(i,t\)에 대해)
-</p>
-
-$$
-\Pr\!\left(|\hat\mu_{i,t}-\mu_i|\ge x\right)
-\le 2\exp\!\left(-2n_i(t)x^2\right)
-$$
-
-<p>
-(Hoeffding)이고, 여기에 2)에서 얻은 \(n_i(t)\) 하한을 넣으면
-오차폭이 \(\sqrt{\frac{\log T}{\sum_{\tau\le t}\varepsilon_\tau}}\) 꼴로 나온다.
-</p>
-
-
-<div class="formula">
-$$
-\Pr\!\left(
-\bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
-\left\{\,|\hat\mu_{i,t}-\mu_i|
-\le \sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}\,\right\}
-\right)\ \ge\ 1-\frac{2}{T}.
-$$
-</div>
-
-<div class="interpretation">
-  <b>왜 실패확률이 \(\frac{2}{T}\)인가?</b><br/>
-  (i) Hoeffding 자체의 앞 상수 2,<br/>
-  (ii) 시간 \(t\)들에 대한 union bound 정리,<br/>
-  를 한 번에 묶으면 “대충 \(\frac{2}{T}\)” 꼴로 정리되는 구성이 흔하다.
-</div>
-
-<h3>5) exploit에서 suboptimal이 선택되면 gap을 오차 두 개로 누르기</h3>
-
-<p>
-exploit에서 \(i=\arg\max_j \hat\mu_{j,t}\)이고 \(i\neq i^*\)라면
-\(\hat\mu_{i,t}\ge \hat\mu_{i^*,t}\) 이다.
-이를 이용해
-</p>
-
-<div class="formula">
-$$
-\Delta_i=\mu^*-\mu_i
-= (\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i^*,t}-\mu_i)
-\le \big[(\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i,t}-\mu_i)\big].
-$$
-</div>
-
-<div class="step-box">
-  <b>중요한 한 줄</b><br/>
-  \(\hat\mu_{i^*,t}-\mu_i=(\hat\mu_{i^*,t}-\hat\mu_{i,t})+(\hat\mu_{i,t}-\mu_i)\le \hat\mu_{i,t}-\mu_i\)<br/>
-  (선택 조건 때문에 첫 항이 \(\le 0\))
-</div>
-
-<p>
-이제 4)의 농도 bound를 최적팔과 선택된 팔에 각각 적용하면
-</p>
-
-<div class="formula">
-$$
-\Delta_i
-\le \,2\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}.
-$$
-</div>
-
-<div class="interpretation">
-  <b>직관</b><br/>
-  “탐욕이 틀렸다”는 건 결국 (최적팔 과소평가) + (선택팔 과대평가) 중 무엇인가가 일어난 것인데,
-  good event에서는 두 오차가 모두 작아서 결과적으로 \(\Delta_i\) 자체가 작은 값으로 눌린다.
-</div>
-
-<h3>6) exploit-regret 합 상계: 임계 구간 분리 + 꼬리항</h3>
-
-<p>
-슬라이드가 하는 전형적인 정리는 다음과 같다.
-</p>
-
-<ul>
-  <li>\(t < \frac{16}{\varepsilon_T}\log T\) 구간은 “최악 상계”로 처리 → \(\frac{16}{\varepsilon_T}\log T\) 항</li>
-  <li>\(t \ge \frac{16}{\varepsilon_T}\log T\) 구간에서는 위의 \(\Delta_i\) 상계를 사용</li>
-</ul>
-
-<div class="formula">
-$$
-\sum_{t=N+1}^T(1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\Pr\!\left(i=\arg\max_j\hat\mu_{j,t}\right)
-\le \cdot 2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}
-+\frac{16}{\varepsilon_T}\log T.
-$$
-</div>
-
-<h3>7) \(f(t)\)로 \(\sum_{\tau\le t}\varepsilon_\tau\)를 샌드위치</h3>
-
-<div class="formula">
-$$
-C_\ell f(t)\le \sum_{\tau=1}^t\varepsilon_\tau\le C_u f(t).
-$$
-</div>
-
-<div class="step-box">
-  <b>왜 이걸 하냐?</b><br/>
-  분석에 남는 건 \(\sum \varepsilon_t\)와 \(\sqrt{1/\sum_{\tau\le t}\varepsilon_\tau}\)뿐이라,
-  이를 “하나의 성장 함수 \(f\)”로 정리하면 적분으로 깔끔하게 닫힌다.
-</div>
-
-<div class="formula">
-$$
-\mathbb E[R(T)]
-\le N+\frac{16}{\varepsilon_T}\log T
-+\,C_u f(T)
-+\,2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{C_\ell f(t)}}.
-$$
-</div>
-
-<h3>8) 합을 적분으로 상계</h3>
-
-<p>
-\(f(t)\)가 증가함수이면 \(1/\sqrt{f(t)}\)는 감소함수이므로,
-\(\sum_{t=m}^T 1/\sqrt{f(t)}\)는 적분으로 상계할 수 있다.
-</p>
-
-<div class="formula">
-$$
-2\sum_{t\ge m}\sqrt{\frac{8N\log T}{C_\ell f(t)}}
-\ \le\
-\,\frac{4\sqrt{8N\log T}}{\sqrt{C_\ell}}
-\int_{m}^{T}\frac{dt}{\sqrt{f(t)}},
-\quad m=\frac{16}{\varepsilon_T}\log T.
-$$
-</div>
-
-<h3>9) \(f(t)\approx t^\alpha(N\log t)^\beta\)로 두 항 균형</h3>
-
-<p>
-상수들을 무시하고(슬라이드 표현처럼) \(f(t)\approx t^\alpha(N\log t)^\beta\)라 두면
-</p>
-
-<ul>
-  <li>탐험항: \(\sum_{t\le T}\varepsilon_t \approx f(T)\approx T^\alpha(N\log T)^\beta\)</li>
-  <li>적분항:
-$$
-\begin{aligned}
-\sqrt{N\log T}\int_{1}^{T} \frac{dt}{\sqrt{f(t)}}
-&\approx
-\sqrt{N\log T}\int_{1}^{T}
-t^{-\alpha/2}(N\log t)^{-\beta/2}\,dt \\
-&\approx
-T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}.
-\end{aligned}
-$$
-
-  </li>
-</ul>
-
-<div class="formula">
-$$
-\mathbb E[R(T)]
-\lesssim (H)\Big[
-T^\alpha(N\log T)^\beta
-+T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}
-\Big].
-$$
-</div>
-
-<div class="step-box">
-  <b>최적 선택(균형 맞추기)</b><br/>
-  두 항의 \(T\) 지수와 \((N\log T)\) 지수를 각각 같게 맞추면
-  \(\alpha=\frac23,\ \beta=\frac13\)이 나온다.
-</div>
-
-<div class="formula">
-$$
-\alpha=\,\frac{2}{3},\qquad \beta=\,\frac{1}{3}.
-$$
-</div>
-
-<h3>10) 거의 최적 exploration 스케줄</h3>
-
-<p>
-\(\sum_{\tau\le t}\varepsilon_\tau \approx f(t)\)가 되게 하려면 보통
-\(\varepsilon_t\approx f'(t)\)로 잡는다.
-따라서 (로그 미분 잔항을 상수로 흡수하면)
-</p>
-
-<div class="formula">
-$$
-\varepsilon_t=\,t^{-1/3}(N\log t)^{1/3},\qquad
-f(t)=\,t^{2/3}(N\log t)^{1/3}.
-$$
-</div>
-
-<div class="interpretation">
-  <b>주의</b><br/>
-  실제 알고리즘 구현에서는 \(\varepsilon_t\le 1\)이 필요하므로
-  \(\varepsilon_t=\min\{1,\;c\,t^{-1/3}(N\log t)^{1/3}\}\) 같은 형태로 쓰는 경우가 많다.
-</div>
-
-<h3>11) 최종 결과 정리</h3>
-
-<div class="formula">
-$$
-\mathbb E[R(T)]
-\le N+\frac{16}{\varepsilon_T}\log T
-+ C\,\,T^{2/3}N^{1/3}\log^{1/3}T.
-$$
-</div>
-
-<div class="interpretation">
-  <b>핵심 지배항</b><br/>
-  \(T^{2/3}(N\log T)^{1/3}
-  =T^{2/3}N^{1/3}\log^{1/3}T\)가
-  탐험/추정오차 항을 동시에 균형시킨 결과다.
-</div>
-
-
-</div>
-</details>
-</section>
-
-<div class="footer">
-  &copy; 2026 Bandit Proof Notes — ε-greedy Regret (time-varying εₜ)
-</div>
-
-</div>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Learning Theory</h2>
+
+      <div class="side-group">
+        <div class="side-label">Reading Map</div>
+        <div class="side-links">
+          <a class="mini-link" href="#sec0">0) 준비 과정</a>
+          <a class="mini-link" href="#sec1">1) Explore + Exploit 분해</a>
+          <a class="mini-link" href="#sec2">2) 표본 수 하한 제어</a>
+          <a class="mini-link" href="#sec3">3) 문제의 임계 구간</a>
+          <a class="mini-link" href="#sec4">4) Hoeffding 농도 부등식</a>
+          <a class="mini-link" href="#sec5">5) gap을 오차로 누르기</a>
+          <a class="mini-link" href="#sec6">6) exploit-regret 합 상계</a>
+          <a class="mini-link" href="#sec7">7) \(f(t)\) 샌드위치</a>
+          <a class="mini-link" href="#sec8">8) 합을 적분으로 상계</a>
+          <a class="mini-link" href="#sec9">9) 두 항 균형 맞추기</a>
+          <a class="mini-link" href="#sec10">10) 최적 스케줄</a>
+          <a class="mini-link" href="#sec11">11) 최종 결과</a>
+        </div>
+      </div>
+
+      <div class="side-group">
+        <div class="side-label">핵심 키워드</div>
+        <div class="side-links">
+          <a class="mini-link" href="#sec1">\(\varepsilon\)-greedy</a>
+          <a class="mini-link" href="#sec4">Hoeffding</a>
+          <a class="mini-link" href="#sec3">Union Bound</a>
+          <a class="mini-link" href="#sec8">Integral Bound</a>
+          <a class="mini-link" href="#sec11">Regret Bound</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>ε-greedy Regret Bound</h1>
+          <p>시간가변 \(\varepsilon_t\) 사용 시 표준 상계 논증 (원문 문제 포맷 반영)</p>
+        </div>
+      </header>
+
+      <section class="top-summary">
+        <div class="summary-card">
+          <div class="label">Goal</div>
+          <div class="value">시간가변 \(\varepsilon_t\)를 사용한 \(\varepsilon\)-greedy 알고리즘의 Regret 상계 증명</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Tool</div>
+          <div class="value">Explore + Exploit 분해, Hoeffding 부등식, 합의 적분 상계</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Result</div>
+          <div class="value">최적 스케줄링 시 \(\mathcal{O}(T^{2/3}N^{1/3}\log^{1/3}T)\) Regret 달성</div>
+        </div>
+      </section>
+
+      <article class="article">
+
+        <div class="flow-card">
+          <h3>증명 흐름 Overview</h3>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <div class="step">1</div>
+              <div class="title">Explore + Exploit 분해</div>
+              <p>전체 Regret을 무작위 탐험 오차와 탐욕 선택 실패 오차로 분해한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">2</div>
+              <div class="title">Good Event</div>
+              <p>탐험 확률을 통해 표본 수 하한을 보장하고 Hoeffding으로 추정 오차를 제어한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">3</div>
+              <div class="title">적분 상계</div>
+              <p>누적 오차 합을 적분식으로 샌드위치하여 상계를 구한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">4</div>
+              <div class="title">항 균형</div>
+              <p>두 항의 차수를 맞춰 최적의 시간가변 \(\varepsilon_t\) 스케줄을 도출한다.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="quote">
+          “핵심은 두 덩어리다: (1) 탐험이 만든 직접 regret \(\sum \varepsilon_t\), (2) 탐욕이 틀릴 때의 regret(=gap)가 ‘추정오차 두 개’로 눌린다는 사실.”
+        </div>
+
+        <section class="section-card" id="sec0">
+          <div class="section-head">
+            <div class="section-kicker">Step 0</div>
+            <h2 class="section-title">준비: 표본평균, gap, regret</h2>
+          </div>
+          <div class="section-body">
+            <ul>
+              <li>
+                <b>표본평균:</b><br/>
+                <div class="formula">
+                $$
+                \hat\mu_{j,t}:=\frac{\sum_{\tau=1}^t r_{j,\tau}\mathbf 1(a_\tau=j)}
+                {\sum_{\tau=1}^t \mathbf 1(a_\tau=j)}
+                $$
+                </div>
+              </li>
+
+              <li>
+                <b>최적 arm:</b><br/>
+                <div class="formula">
+                $$ i^*=\arg\max_i \mu_i,\qquad \mu^*=\mu_{i^*} $$
+                </div>
+              </li>
+
+              <li>
+                <b>gap:</b><br/>
+                <div class="formula">
+                $$ \Delta_i:=\mu^*-\mu_i \quad \text{for } i\neq i^* $$
+                </div>
+              </li>
+
+              <li>
+                <b>누적 regret:</b><br/>
+                <div class="formula">
+                $$
+                R(T)=\sum_{t=1}^T(\mu^*-\mu_{a_t})
+                =\sum_{t=1}^T \Delta_{a_t}
+                $$
+                </div>
+              </li>
+            </ul>
+
+            <div class="note">
+              <b>메모</b><br/>
+              문제(슬라이드)에서는 “처음 \(N\)번은 각 arm을 1번씩 뽑는다”를 기본으로 깔고, 그 비용을 상수 \(N\)으로 먼저 더해준다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec1">
+          <div class="section-head">
+            <div class="section-kicker">Step 1</div>
+            <h2 class="section-title">regret를 Explore + Exploit로 분해</h2>
+          </div>
+          <div class="section-body">
+            <div class="summary-box">
+              <b>ε-greedy는 시간 \(t\)에</b><br/>
+              - 확률 \(\varepsilon_t\): explore (균등 랜덤)<br/>
+              - 확률 \(1-\varepsilon_t\): exploit (\(\arg\max_j \hat\mu_{j,t}\))
+            </div>
+
+            <p>보상/손실이 \([0,1]\) 범위라고 두면, 한 번의 선택으로 생길 수 있는 regret는 최대 1이므로 explore로 인한 기대 regret는 \(\varepsilon_t\cdot 1\)로 상계된다.</p>
+
+            <div class="formula">
+            $$
+            \mathbb E[R(T)]
+            \le N + \sum_{t=N+1}^T \varepsilon_t
+            +\sum_{t=N+1}^T (1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\,
+            \Pr\!\left(i=\arg\max_{j\in[N]}\hat\mu_{j,t}\right).
+            $$
+            </div>
+
+            <div class="note">
+              <b>여기서 중요한 건 “exploit 쪽”</b><br/>
+              exploit에서 suboptimal \(i\neq i^*\)가 선택되는 확률을 어떻게 제어하느냐가 핵심이며, 그게 다음의 “표본 수 하한 + Hoeffding”으로 이어진다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec2">
+          <div class="section-head">
+            <div class="section-kicker">Step 2</div>
+            <h2 class="section-title">탐험이 만드는 표본 수 하한: \(\sum \mathbf 1(a_\tau=i)\) 제어</h2>
+          </div>
+          <div class="section-body">
+            <p>각 arm \(i\)의 누적 선택 횟수를</p>
+
+            <div class="formula">
+            $$
+            n_i(t):=\sum_{\tau=1}^t \mathbf 1(a_\tau=i)
+            $$
+            </div>
+
+            <p>라고 하자. exploit이 한 arm에 쏠리면 어떤 arm은 거의 뽑히지 않을 수 있으니, 최악을 막는 장치가 explore(균등 랜덤)이다.</p>
+
+            <div class="summary-box">
+              <b>핵심 관찰</b><br/>
+              시간 \(\tau\)에 explore가 일어나면 arm \(i\)가 뽑힐 확률은 \(\frac1N\).<br/>
+              따라서 전체 확률로는 \(\Pr(a_\tau=i)\ge \varepsilon_\tau\cdot\frac1N\).
+            </div>
+
+            <div class="formula">
+            $$
+            \sum_{\tau=1}^t\mathbf 1(a_\tau=i)
+            \ge \frac12\sum_{\tau=1}^t \Pr(a_\tau=i)
+            \ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau.
+            $$
+            </div>
+
+            <div class="note">
+              <b>왜 “절반(1/2)”이 나오나?</b><br/>
+              \(\mathbf 1(a_\tau=i)\)는 베르누이들의 합이라 집중부등식(Chernoff 류)로 “실제 합이 기대합의 일정 비율(예: 1/2) 이상”임을 높은 확률로 보장할 수 있다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec3">
+          <div class="section-head">
+            <div class="section-kicker">Step 3</div>
+            <h2 class="section-title">문제의 임계 구간: \(t\ge \frac{16}{\varepsilon_T}\log T\)</h2>
+          </div>
+          <div class="section-body">
+            <p>슬라이드에는 “모든 \(t\ge \frac{16}{\varepsilon_T}\log T\)에 대해 위 부등식이 동시에 성립” 같은 형태가 나오는데, 이건 다음 두 가지 이유 때문이다.</p>
+
+            <ul>
+              <li><b>이유 1</b>: \(t\)가 너무 작으면 \(\sum_{\tau\le t}\varepsilon_\tau\) 자체가 작아서 ‘표본 수 하한’이 약함</li>
+              <li><b>이유 2</b>: “모든 시간 \(t\)에 대해 동시에”를 만들려면 union bound가 들어가며 \(\log T\)가 필요</li>
+            </ul>
+
+            <div class="formula">
+            $$
+            \Pr\!\left(\bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
+            \left\{\,\sum_{\tau=1}^t \mathbf 1(a_\tau=i)\ge \frac1{2N}\sum_{\tau=1}^t \varepsilon_\tau \right\}\right)
+            \ge 1-\frac{1}{T}.
+            $$
+            </div>
+
+            <div class="note">
+              <b>포인트</b><br/>
+              여기서 \(1-\frac{1}{T}\) 같은 형태는 “시간축 전체에 대한 실패확률을 \(\frac1T\)로 맞추는” 전형적인 선택이다. (상수 16은 해당 증명에서 Chernoff/union bound를 정리한 결과로 보면 된다.)
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec4">
+          <div class="section-head">
+            <div class="section-kicker">Step 4</div>
+            <h2 class="section-title">Hoeffding으로 표본평균 농도: 모든 \(t\)에 대한 동시 성립</h2>
+          </div>
+          <div class="section-body">
+            <p>보상이 \([0,1]\) 범위이면 (고정된 \(i,t\)에 대해)</p>
+
+            <div class="formula">
+            $$
+            \Pr\!\left(|\hat\mu_{i,t}-\mu_i|\ge x\right)
+            \le 2\exp\!\left(-2n_i(t)x^2\right)
+            $$
+            </div>
+
+            <p>이고 (Hoeffding), 여기에 2)에서 얻은 \(n_i(t)\) 하한을 넣으면 오차폭이 \(\sqrt{\frac{\log T}{\sum_{\tau\le t}\varepsilon_\tau}}\) 꼴로 나온다.</p>
+
+            <div class="formula">
+            $$
+            \Pr\!\left(
+            \bigcap_{t\ge \frac{16}{\varepsilon_T}\log T}
+            \left\{\,|\hat\mu_{i,t}-\mu_i|
+            \le \sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}\,\right\}
+            \right)\ \ge\ 1-\frac{2}{T}.
+            $$
+            </div>
+
+            <div class="note">
+              <b>왜 실패확률이 \(\frac{2}{T}\)인가?</b><br/>
+              (i) Hoeffding 자체의 앞 상수 2,<br/>
+              (ii) 시간 \(t\)들에 대한 union bound 정리,<br/>
+              를 한 번에 묶으면 “대충 \(\frac{2}{T}\)” 꼴로 정리되는 구성이 흔하다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec5">
+          <div class="section-head">
+            <div class="section-kicker">Step 5</div>
+            <h2 class="section-title">exploit에서 suboptimal이 선택되면 gap을 오차 두 개로 누르기</h2>
+          </div>
+          <div class="section-body">
+            <p>exploit에서 \(i=\arg\max_j \hat\mu_{j,t}\)이고 \(i\neq i^*\)라면 \(\hat\mu_{i,t}\ge \hat\mu_{i^*,t}\) 이다. 이를 이용해</p>
+
+            <div class="formula">
+            $$
+            \Delta_i=\mu^*-\mu_i
+            = (\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i^*,t}-\mu_i)
+            \le \big[(\mu^*-\hat\mu_{i^*,t})+(\hat\mu_{i,t}-\mu_i)\big].
+            $$
+            </div>
+
+            <div class="summary-box">
+              <b>중요한 한 줄</b><br/>
+              \(\hat\mu_{i^*,t}-\mu_i=(\hat\mu_{i^*,t}-\hat\mu_{i,t})+(\hat\mu_{i,t}-\mu_i)\le \hat\mu_{i,t}-\mu_i\)<br/>
+              (선택 조건 때문에 첫 항이 \(\le 0\))
+            </div>
+
+            <p>이제 4)의 농도 bound를 최적팔과 선택된 팔에 각각 적용하면</p>
+
+            <div class="formula">
+            $$
+            \Delta_i
+            \le \,2\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}.
+            $$
+            </div>
+
+            <div class="note">
+              <b>직관</b><br/>
+              “탐욕이 틀렸다”는 건 결국 (최적팔 과소평가) + (선택팔 과대평가) 중 무엇인가가 일어난 것인데, good event에서는 두 오차가 모두 작아서 결과적으로 \(\Delta_i\) 자체가 작은 값으로 눌린다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec6">
+          <div class="section-head">
+            <div class="section-kicker">Step 6</div>
+            <h2 class="section-title">exploit-regret 합 상계: 임계 구간 분리 + 꼬리항</h2>
+          </div>
+          <div class="section-body">
+            <p>슬라이드가 하는 전형적인 정리는 다음과 같다.</p>
+
+            <ul>
+              <li>\(t < \frac{16}{\varepsilon_T}\log T\) 구간은 “최악 상계”로 처리 → \(\frac{16}{\varepsilon_T}\log T\) 항</li>
+              <li>\(t \ge \frac{16}{\varepsilon_T}\log T\) 구간에서는 위의 \(\Delta_i\) 상계를 사용</li>
+            </ul>
+
+            <div class="formula">
+            $$
+            \sum_{t=N+1}^T(1-\varepsilon_t)\sum_{i\neq i^*}\Delta_i\Pr\!\left(i=\arg\max_j\hat\mu_{j,t}\right)
+            \le \cdot 2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{\sum_{\tau=1}^t\varepsilon_\tau}}
+            +\frac{16}{\varepsilon_T}\log T.
+            $$
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec7">
+          <div class="section-head">
+            <div class="section-kicker">Step 7</div>
+            <h2 class="section-title">\(f(t)\)로 \(\sum_{\tau\le t}\varepsilon_\tau\)를 샌드위치</h2>
+          </div>
+          <div class="section-body">
+            <div class="formula">
+            $$
+            C_\ell f(t)\le \sum_{\tau=1}^t\varepsilon_\tau\le C_u f(t).
+            $$
+            </div>
+
+            <div class="summary-box">
+              <b>왜 이걸 하냐?</b><br/>
+              분석에 남는 건 \(\sum \varepsilon_t\)와 \(\sqrt{1/\sum_{\tau\le t}\varepsilon_\tau}\)뿐이라, 이를 “하나의 성장 함수 \(f\)”로 정리하면 적분으로 깔끔하게 닫힌다.
+            </div>
+
+            <div class="formula">
+            $$
+            \mathbb E[R(T)]
+            \le N+\frac{16}{\varepsilon_T}\log T
+            +\,C_u f(T)
+            +\,2\sum_{t\ge \frac{16}{\varepsilon_T}\log T}\sqrt{\frac{8N\log T}{C_\ell f(t)}}.
+            $$
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec8">
+          <div class="section-head">
+            <div class="section-kicker">Step 8</div>
+            <h2 class="section-title">합을 적분으로 상계</h2>
+          </div>
+          <div class="section-body">
+            <p>\(f(t)\)가 증가함수이면 \(1/\sqrt{f(t)}\)는 감소함수이므로, \(\sum_{t=m}^T 1/\sqrt{f(t)}\)는 적분으로 상계할 수 있다.</p>
+
+            <div class="formula">
+            $$
+            2\sum_{t\ge m}\sqrt{\frac{8N\log T}{C_\ell f(t)}}
+            \ \le\
+            \,\frac{4\sqrt{8N\log T}}{\sqrt{C_\ell}}
+            \int_{m}^{T}\frac{dt}{\sqrt{f(t)}},
+            \quad m=\frac{16}{\varepsilon_T}\log T.
+            $$
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec9">
+          <div class="section-head">
+            <div class="section-kicker">Step 9</div>
+            <h2 class="section-title">\(f(t)\approx t^\alpha(N\log t)^\beta\)로 두 항 균형</h2>
+          </div>
+          <div class="section-body">
+            <p>상수들을 무시하고(슬라이드 표현처럼) \(f(t)\approx t^\alpha(N\log t)^\beta\)라 두면</p>
+
+            <ul>
+              <li>탐험항: \(\sum_{t\le T}\varepsilon_t \approx f(T)\approx T^\alpha(N\log T)^\beta\)</li>
+              <li>적분항:
+                <div class="formula">
+                $$
+                \begin{aligned}
+                \sqrt{N\log T}\int_{1}^{T} \frac{dt}{\sqrt{f(t)}}
+                &\approx
+                \sqrt{N\log T}\int_{1}^{T}
+                t^{-\alpha/2}(N\log t)^{-\beta/2}\,dt \\
+                &\approx
+                T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}.
+                \end{aligned}
+                $$
+                </div>
+              </li>
+            </ul>
+
+            <div class="formula">
+            $$
+            \mathbb E[R(T)]
+            \lesssim (H)\Big[
+            T^\alpha(N\log T)^\beta
+            +T^{1-\alpha/2}(N\log T)^{1/2-\beta/2}
+            \Big].
+            $$
+            </div>
+
+            <div class="summary-box">
+              <b>최적 선택(균형 맞추기)</b><br/>
+              두 항의 \(T\) 지수와 \((N\log T)\) 지수를 각각 같게 맞추면 \(\alpha=\frac23,\ \beta=\frac13\)이 나온다.
+            </div>
+
+            <div class="formula">
+            $$
+            \alpha=\,\frac{2}{3},\qquad \beta=\,\frac{1}{3}.
+            $$
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec10">
+          <div class="section-head">
+            <div class="section-kicker">Step 10</div>
+            <h2 class="section-title">거의 최적 exploration 스케줄</h2>
+          </div>
+          <div class="section-body">
+            <p>\(\sum_{\tau\le t}\varepsilon_\tau \approx f(t)\)가 되게 하려면 보통 \(\varepsilon_t\approx f'(t)\)로 잡는다. 따라서 (로그 미분 잔항을 상수로 흡수하면)</p>
+
+            <div class="formula">
+            $$
+            \varepsilon_t=\,t^{-1/3}(N\log t)^{1/3},\qquad
+            f(t)=\,t^{2/3}(N\log t)^{1/3}.
+            $$
+            </div>
+
+            <div class="note">
+              <b>주의</b><br/>
+              실제 알고리즘 구현에서는 \(\varepsilon_t\le 1\)이 필요하므로 \(\varepsilon_t=\min\{1,\;c\,t^{-1/3}(N\log t)^{1/3}\}\) 같은 형태로 쓰는 경우가 많다.
+            </div>
+          </div>
+        </section>
+
+        <section class="section-card" id="sec11">
+          <div class="section-head">
+            <div class="section-kicker">Step 11</div>
+            <h2 class="section-title">최종 결과 정리</h2>
+          </div>
+          <div class="section-body">
+            <div class="formula">
+            $$
+            \mathbb E[R(T)]
+            \le N+\frac{16}{\varepsilon_T}\log T
+            + C\,\,T^{2/3}N^{1/3}\log^{1/3}T.
+            $$
+            </div>
+
+            <div class="note">
+              <b>핵심 지배항</b><br/>
+              \(T^{2/3}(N\log T)^{1/3} =T^{2/3}N^{1/3}\log^{1/3}T\)가 탐험/추정오차 항을 동시에 균형시킨 결과다.
+            </div>
+          </div>
+        </section>
+
+        <div class="footer">&copy; 2026 Bandit Proof Notes — ε-greedy Regret (time-varying εₜ)</div>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    const miniLinks = [...document.querySelectorAll('.mini-link')];
+    const observedSections = [...document.querySelectorAll('.section-card')];
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          miniLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      rootMargin:'-20% 0px -60% 0px',
+      threshold:0.05
+    });
+
+    observedSections.forEach(section => observer.observe(section));
+  </script>
 </body>
 </html>

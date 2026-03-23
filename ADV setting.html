@@ -17,466 +17,991 @@
 
   <style>
     :root{
-      --primary:#1e3a8a; --secondary:#2563eb; --accent:#f59e0b;
-      --bg:#f8fafc; --text:#1e293b; --card:#ffffff;
-      --muted:#64748b; --border:#e2e8f0;
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --secondary:#3b82f6;
+      --accent:#f59e0b;
+      --bg:#f8fafc;
+      --bg-soft:#eef4ff;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --warn-bg:#fff7ed;
+      --warn-border:#fed7aa;
+      --shadow-sm:0 4px 10px rgba(15,23,42,.05);
+      --shadow-md:0 14px 30px rgba(15,23,42,.08);
+      --radius-lg:24px;
+      --radius-md:18px;
+      --radius-sm:12px;
+      --sidebar-width:280px;
     }
+
     *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
     body{
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", sans-serif;
-      background:var(--bg); color:var(--text); line-height:1.7;
-      margin:0; padding:22px;
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);
+      color:var(--text);
+      line-height:1.72;
     }
-    .container{max-width:1080px; margin:0 auto;}
-    header{
-      text-align:center; padding:50px 20px;
-      background:linear-gradient(135deg, var(--primary), var(--secondary));
-      color:#fff; border-radius:20px; margin-bottom:30px;
-    }
-    header h1{margin:0; font-size:2.2rem;}
-    header p{margin:10px 0 0; opacity:.9;}
 
-    section{
-      background:var(--card); padding:0; border-radius:15px;
-      margin-bottom:20px; box-shadow:0 4px 12px rgba(0,0,0,.05);
-      border:1px solid var(--border); overflow: hidden;
-    }
-    details { width: 100%; }
-    summary {
-      list-style: none; padding: 22px 28px; cursor: pointer;
-      outline: none; transition: background 0.2s ease;
-    }
-    summary:hover { background: #f1f5f9; }
-    summary::-webkit-details-marker { display: none; }
+    a{color:inherit;text-decoration:none}
 
-    h2{
-      display: flex; justify-content: space-between; align-items: center;
-      color:var(--primary); border-left:5px solid var(--secondary);
-      padding-left:14px; margin:0; font-size:1.4rem;
+    .layout{
+      display:grid;
+      grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+      min-height:100vh;
     }
-    h2::after { content: '->'; font-size: 1.1rem; transition: transform 0.3s ease; color: var(--muted); }
-    details[open] h2::after { transform: rotate(90deg); }
 
-    .content { padding: 0 30px 30px 30px; }
-    h3{color:var(--secondary); margin:24px 0 10px; font-size:1.15rem; border-bottom:1px solid var(--border); padding-bottom:5px;}
-    h4{margin:18px 0 8px; font-size:1rem; color:#0f172a; font-weight:700;}
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      padding:22px 18px;
+      background:rgba(255,255,255,.92);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);
+    }
+
+    .sidebar h2{
+      margin:0 0 6px;
+      font-size:1.15rem;
+      color:var(--primary-dark);
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .sidebar p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .side-group{margin-bottom:18px}
+    .side-label{
+      margin:0 0 10px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .side-links{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .mini-link{
+      display:block;
+      padding:9px 10px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:.9rem;
+      transition:.2s ease;
+    }
+
+    .mini-link:hover,
+    .mini-link.active{
+      background:#eff6ff;
+      color:var(--primary-dark);
+      border-color:#cfe0ff;
+    }
+
+    .content{
+      min-width:0;
+      padding:22px 28px 60px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:38px 30px;
+      border-radius:30px;
+      background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(37,99,235,.22);
+      margin-bottom:22px;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .hero::before{width:220px;height:220px;top:-90px;right:-40px}
+    .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
+
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{
+      margin:0;
+      font-size:2.2rem;
+      line-height:1.12;
+      letter-spacing:-.02em;
+    }
+    .hero p{
+      margin:10px 0 0;
+      opacity:.94;
+      max-width:780px;
+    }
+
+    .top-summary{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .summary-card .label{
+      font-size:.8rem;
+      color:var(--muted);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .summary-card .value{
+      margin-top:6px;
+      font-size:1rem;
+      font-weight:760;
+      line-height:1.5;
+    }
+
+    .article{
+      min-width:0;
+      max-width:1040px;
+    }
+
+    .flow-card,
+    .concept-card,
+    .section-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .flow-card,
+    .concept-card{
+      padding:18px 20px;
+      margin-bottom:18px;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .flow-card h3,
+    .concept-card h3{
+      margin:0 0 10px;
+      color:var(--primary-dark);
+      font-size:1.08rem;
+    }
+
+    .chip-wrap{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:.84rem;
+      font-weight:700;
+      color:#0f172a;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .flow-step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px 13px;
+    }
+
+    .flow-step .step{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.74rem;
+      font-weight:800;
+      color:var(--secondary);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .flow-step .title{
+      font-weight:780;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
+
+    .flow-step p{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.55;
+    }
+
+    .section-card{
+      overflow:hidden;
+      margin-bottom:18px;
+      scroll-margin-top:24px;
+    }
+
+    .section-head{
+      padding:24px 26px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .section-kicker{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--secondary);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:1.45rem;
+      font-weight:820;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+
+    .section-title::before{
+      content:"";
+      width:7px;
+      height:28px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--primary),var(--secondary));
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .section-body{padding:22px 28px 28px}
+    .section-body > :first-child{margin-top:0}
+
+    h3{
+      margin:22px 0 10px;
+      font-size:1.12rem;
+      color:var(--secondary);
+    }
+
+    h4{
+      margin:18px 0 8px;
+      font-size:1rem;
+      color:#0f172a;
+    }
+
+    p{margin:10px 0}
+    ul,ol{margin:10px 0 0 20px;padding:0}
+    li{margin:6px 0}
+
+    .quote,
+    .note,
+    .warn,
+    .summary-box,
+    .interpretation{
+      border-radius:16px;
+      padding:16px 18px;
+      margin:16px 0;
+    }
 
     .quote{
-      background:#eff6ff; border-left:4px solid var(--secondary);
-      padding:12px 16px; border-radius:10px; margin:15px 0; font-style:italic;
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      font-style:italic;
     }
-    .formula{
-      background:#f1f5f9; padding:15px; border-radius:10px;
-      margin:15px 0; overflow-x:auto; border:1px solid var(--border);
-    }
-    .interpretation {
-      background: #f8fafc; padding: 15px; border-radius: 10px;
-      border: 1px dashed var(--secondary); margin: 15px 0;
-    }
-    .interpretation b { color: var(--secondary); }
 
-    .step-box { border-left: 3px solid var(--accent); background: #fffcf5; padding: 15px; margin: 10px 0; border-radius: 0 10px 10px 0; }
-    .footer{ text-align:center; color:var(--muted); font-size:.9rem; margin:40px 0; }
+    .note{
+      background:#f8fafc;
+      border:1px solid var(--border);
+    }
+
+    .warn{
+      background:var(--warn-bg);
+      border:1px solid var(--warn-border);
+      color:#9a3412;
+      font-weight:600;
+    }
+
+    .summary-box{
+      background:var(--success-bg);
+      border:1px solid var(--success-border);
+    }
+
+    .interpretation{
+      background:#f8fafc;
+      border:1px dashed var(--secondary);
+    }
+
+    .formula{
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      margin:16px 0;
+      overflow-x:auto;
+    }
+
+    .highlight{
+      background:#fef3c7;
+      padding:4px 8px;
+      border-radius:8px;
+      font-weight:800;
+    }
+
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .mini-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      background:#fff;
+    }
+
+    .step-box{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px 18px;
+      margin:12px 0;
+      background:#fffaf0;
+      box-shadow:0 2px 6px rgba(15,23,42,.03);
+      border-left:4px solid var(--accent);
+    }
+
+    .step-title{
+      margin:0 0 10px;
+      font-size:1rem;
+      font-weight:800;
+      color:var(--primary-dark);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:16px 0;
+      overflow:hidden;
+      border-radius:14px;
+    }
+
+    th,td{
+      padding:12px;
+      border:1px solid var(--border);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fafc;
+      color:var(--primary-dark);
+    }
+
+    .footer{
+      text-align:center;
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:28px;
+    }
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{
+        position:static;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid var(--border);
+      }
+      .content{padding:18px 16px 48px}
+    }
+
+    @media (max-width:900px){
+      .flow-grid{grid-template-columns:1fr 1fr}
+    }
+
+    @media (max-width:760px){
+      .top-summary{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .flow-grid{grid-template-columns:1fr}
+      .hero{padding:30px 22px}
+      .hero h1{font-size:1.9rem}
+      .section-head{padding:20px 20px 14px}
+      .section-body{padding:18px 20px 22px}
+      .section-title{font-size:1.25rem}
+    }
   </style>
 </head>
 <body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Bandits Notes</h2>
 
-<div class="container">
-  <header>
-    <h1>Adversarial Bandits → EXP3</h1>
-    <p>oblivious vs adaptive, regret 정의, full-information → bandits(IPW), EXP3 preliminaries</p>
-  </header>
-
-  <section>
-    <details>
-      <summary><h2>1) Adversarial setup</h2></summary>
-      <div class="content">
-
-        <h3>(1) “repeated game”</h3>
-        <ul>
-          <li>라운드 \(t=1,2,\dots,T\)가 있고 매 라운드</li>
-          <li>
-            1. 학습자(알고리즘)가 행동 \(A_t\in[N]\) 선택<br/>
-            2. 적대자(adversary)가 그 라운드의 보상벡터(or 손실벡터)를 정함
-          </li>
-        </ul>
-
-        <p>슬라이드 첫 줄에 “algorithm selects \(A_t\) then adversary selects \((x_{t1},\dots,x_{tN})\)”라고 적혀 있는데,</p>
-        <ul>
-          <li><b>이 순서가 적대자의 힘을 가장 크게 주는 설정</b>이야(= adaptive adversary 쪽에 가까움).</li>
-          <li>다만 문헌에 따라 “동시에 결정”으로 두거나, 분석은 “oblivious”로 제한하기도 해(뒤 슬라이드에서 구분).</li>
-        </ul>
-
-        <h3>(2) “보상 생성 가정 없음”</h3>
-        <ul>
-          <li>확률분포, i.i.d., stationary 같은 가정 없음.</li>
-          <li>\(x_t=(x_{t1},\dots,x_{tN})\in[0,1]^N\)이 각 \(t\)에서 <b>아무렇게나</b> 정해질 수 있음.</li>
-        </ul>
-
-        <h3>(3) \(P_t\in\mathcal P_{N-1}\) 의 의미</h3>
-        <div class="formula">
-          $$\mathcal P_{N-1}=\left\{
-          P_t=(p_{t1},\dots,p_{tN}) : p_{ti}\ge 0,\ \sum_{i=1}^N p_{ti}=1
-          \right\}$$
+      <div class="side-group">
+        <div class="side-label">Reading Map</div>
+        <div class="side-links">
+          <a class="mini-link" href="#setup">Adversarial setup</a>
+          <a class="mini-link" href="#adversary-types">Oblivious vs Adaptive</a>
+          <a class="mini-link" href="#examples">Concrete examples</a>
+          <a class="mini-link" href="#applications">Applications</a>
+          <a class="mini-link" href="#regret">Regret definitions</a>
+          <a class="mini-link" href="#fullinfo">Full-information setting</a>
+          <a class="mini-link" href="#ipw">From full info to bandits</a>
+          <a class="mini-link" href="#exp3">EXP3 preliminaries</a>
         </div>
-
-        <ul>
-          <li>알고리즘은 “이번 라운드에 각 팔을 몇 %로 뽑겠다”를 먼저 정하고(\(P_t\))</li>
-          <li>실제 행동은 \(A_t\sim P_t\)로 샘플링됨.</li>
-        </ul>
-
-        <div class="interpretation">
-          <b> 왜 굳이 분포를 고르냐?</b><br/>
-          적대적 환경에서는 결정론적(항상 같은 선택 규칙)이 박살나기 때문에, <b>무작위화</b>가 전략의 일부가 되어야 함.
-        </div>
-
-        <h3>(4) “받는 보상”</h3>
-        <p>선택된 팔 \(A_t\)의 보상만 관측:</p>
-        <div class="formula">
-          $$\text{reward}=x_{t,A_t}$$
-        </div>
-        <p>(단, 뒤의 “full-information setting” 슬라이드에서는 전부 관측하는 다른 세팅을 따로 설명함)</p>
-
-        <h3>(5) policy \(\pi\) 정의</h3>
-        <div class="formula">
-          $$\pi:([N]\times[0,1])^{*}\to \mathcal P_{N-1}$$
-        </div>
-        <ul>
-          <li>\(([N]\times[0,1])^{*}\) : “과거 기록(history)”들의 집합</li>
-        </ul>
-        <div class="formula">
-          $$h_{t-1}=\big((A_1,\text{obs}_1),\dots,(A_{t-1},\text{obs}_{t-1})\big)$$
-        </div>
-        <ul>
-          <li>\(\pi(h_{t-1})=P_t\) : 과거를 보고 다음 라운드 분포를 내놓는 함수.</li>
-        </ul>
-
       </div>
-    </details>
-  </section>
 
-  <section>
-    <details>
-      <summary><h2>2) Oblivious vs. adaptive adversary</h2></summary>
-      <div class="content">
-
-        <p>여기서부터 “적대자가 <b>언제 무엇을 보고</b> 정하냐”를 구분함.</p>
-
-        <h3>(1) reward 대신 loss를 많이 씀</h3>
-        <div class="formula">
-          $$y_{ti}=1-x_{ti}$$
+      <div class="side-group">
+        <div class="side-label">핵심 개념</div>
+        <div class="side-links">
+          <a class="mini-link" href="#setup">\(P_t\in\mathcal P_{N-1}\)</a>
+          <a class="mini-link" href="#regret">\(R_T(\pi,y)\)</a>
+          <a class="mini-link" href="#regret">best fixed arm</a>
+          <a class="mini-link" href="#ipw">IPW estimator</a>
+          <a class="mini-link" href="#exp3">\(\tilde y_{t,i}, \tilde L_{t,i}\)</a>
         </div>
-        <ul>
-          <li>보상 최대화 = 손실 최소화로 바꾼 것뿐.</li>
-          <li>\([0,1]\) 범위 유지가 편하고, 분석이 “합 손실” 형태로 깔끔해져서 손실 표기를 자주 씀.</li>
-        </ul>
-
-        <h3>(2) Oblivious adversary (비적응형)</h3>
-        <ul>
-          <li>핵심: <b>학습자의 미래 행동에 의존하지 않음.</b></li>
-          <li>두 종류:</li>
-        </ul>
-        <div class="step-box">
-          <div><b>Deterministic oblivious:</b> 전체 손실 시퀀스 \((y_1,\dots,y_T)\)를 라운드 1 시작 전에 고정</div>
-          <div><b>Randomized oblivious:</b> 손실 시퀀스에 대한 분포를 미리 고정해두고, 시작 전에 한 번 샘플링해서 고정</div>
-        </div>
-        <p>즉, “게임 시작 전에 시나리오가 이미 정해져 있음”에 가까워.</p>
-
-        <h3>(3) Adaptive (non-oblivious) adversary (적응형)</h3>
-        <ul>
-          <li>손실 \(y_t\)가 학습자의 <b>과거 행동/관측</b>에 의존 가능.</li>
-          <li>예시 “웹 레이아웃”: 네 추천/배치가 사용자 행동을 바꾸고, 그 변화가 다음 라운드 손실에 영향을 줌 → 상호작용적 환경.</li>
-        </ul>
-
       </div>
-    </details>
-  </section>
+    </aside>
 
-  <section>
-    <details>
-      <summary><h2>3) Concrete examples: oblivious vs adaptive</h2></summary>
-      <div class="content">
-
-        <h3>(A) Oblivious 예시: cyclic losses (N=3)</h3>
-        <p>라운드마다 손실벡터가 주기적으로 돌아:</p>
-        <ul>
-          <li>\(t\equiv1\ (\text{mod }3)\): \(y_t=(0,1,1)\)</li>
-          <li>\(t\equiv2\ (\text{mod }3)\): \(y_t=(1,0,1)\)</li>
-          <li>\(t\equiv0\ (\text{mod }3)\): \(y_t=(1,1,0)\)</li>
-        </ul>
-        <ul>
-          <li>매 라운드마다 “그 라운드의 최적 팔”이 정해져 있고 3라운드마다 돌아온다.</li>
-          <li>학습자가 뭘 했든 이 시퀀스는 변하지 않음 → oblivious.</li>
-        </ul>
-
-        <h3>(B) Adaptive 예시: follow-the-leader trap</h3>
-        <p>정의:</p>
-        <div class="formula">
-          $$y_{t,i}=
-          \begin{cases}
-          0 & i=A_{t-1}\\
-          1 & i\ne A_{t-1}
-          \end{cases}
-          \qquad (t\ge2)$$
+    <main class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>Adversarial Bandits → EXP3</h1>
+          <p>oblivious vs adaptive adversary, regret definition, full-information vs bandit feedback, 그리고 EXP3로 이어지는 핵심 직관을 한 흐름으로 정리한다.</p>
         </div>
-        <p>초기 \(y_{1i}=1\) (모든 팔 손실 1로 시작)</p>
+      </header>
 
-        <p>뜻:</p>
-        <ul>
-          <li>“<b>직전에 네가 고른 팔만</b> 이번 라운드 손실 0(좋음), 나머지는 1(나쁨)”으로 적이 세팅.</li>
-        </ul>
+      <section class="top-summary">
+        <div class="summary-card">
+          <div class="label">Environment</div>
+          <div class="value">보상 생성에 대한 확률적 가정 없이, 적대자가 손실/보상을 마음대로 정할 수 있는 환경</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Goal</div>
+          <div class="value">best fixed arm과 비교한 regret를 작게 만드는 것</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Tool</div>
+          <div class="value">bandit feedback를 unbiased하게 복원하는 IPW와 이를 이용한 EXP3</div>
+        </div>
+      </section>
 
-        <h4>직관</h4>
-        <ul>
-          <li>\(t=1\): 전부 손실 1이라 동률 → 임의로 하나 고름(예: 1번)</li>
-          <li>\(t=2\): 1번만 손실 0이라 “리더”가 1번이 됨 → 또 1번 고르게 유도</li>
-          <li>적이 “네 과거 선택에 맞춰” 손실을 만들기 때문에 특정 알고리즘을 계속 끌고갈 수 있음.</li>
-        </ul>
+      <article class="article">
 
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>4) Applications of Oblivious Adversaries</h2></summary>
-      <div class="content">
-
-        <p>공통점: “데이터가 <b>미리 고정</b>되어 있고, 네가 뭘 해도 미래 데이터 자체는 안 바뀜”</p>
-        <ol>
-          <li><b>고정 캠페인 온라인 광고(offline-like)</b><br/>클릭확률이 캠페인 데이터로 이미 정해져 있고, 네 입찰이 그 확률을 바꾸지 않는다고 가정.</li>
-          <li><b>과거 시장 리플레이로 포트폴리오 선택</b><br/>과거 주가 수익률 시퀀스를 그대로 재생. 네가 어떤 포트폴리오를 골라도 “그 과거 가격”이 바뀌진 않음.</li>
-          <li><b>추천 시스템의 오프라인 평가</b><br/>미리 기록된 사용자 피드백 로그로 평가. 지금 추천이 실제 사용자 행동을 바꾸는 “온라인 상호작용”은 없음.</li>
-        </ol>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>5) Applications of Adaptive Adversaries</h2></summary>
-      <div class="content">
-
-        <p>공통점: “네 행동이 상대(환경/사람)의 다음 행동을 바꾼다.”</p>
-        <ol>
-          <li><b>실시간 웹 개인화</b><br/>네가 뭘 보여줬는지에 따라 사용자가 학습/피로/선호 변화 → 다음 손실이 과거 행동에 의존.</li>
-          <li><b>보안/침입탐지</b><br/>공격자가 방어정책을 관찰하고 우회전략을 바꿈 → 적이 학습자의 정책에 반응.</li>
-          <li><b>온라인 경매/가격결정</b><br/>경쟁자들이 네 과거 가격/입찰을 보고 대응 → 보상/손실 동학이 action-dependent.</li>
-        </ol>
-
-      </div>
-    </details>
-  </section>
-
-  <section>
-    <details>
-      <summary><h2>6) Regret definitions</h2></summary>
-      <div class="content">
-
-        <p>여기가 중요. “환경 \(y\)”를 고정했을 때의 regret와, 최악 경우를 분리함.</p>
-
-        <h3>(1) 환경 \(y\)</h3>
-        <p>보통 \(y\)는 전체 손실 행렬을 의미:</p>
-        <div class="formula">
-          $$y \in [0,1]^{T\times N},\quad
-          y={y_{t,i}}_{t\le T, i\le N}$$
+        <div class="flow-card">
+          <h3>Flow Overview</h3>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <div class="step">Step 1</div>
+              <div class="title">Adversarial setup</div>
+              <p>확률모형 없이 반복 게임을 세우고, 왜 무작위화가 필요한지 본다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 2</div>
+              <div class="title">Adversary types</div>
+              <p>oblivious와 adaptive adversary의 차이를 예시와 함께 구분한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 3</div>
+              <div class="title">Regret 기준</div>
+              <p>best fixed arm과 비교하는 regret 정의를 세우고 왜 deterministic policy가 깨지는지 본다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 4</div>
+              <div class="title">EXP3 bridge</div>
+              <p>full-information에서 bandit으로 넘어갈 때 IPW를 써서 손실을 추정하고 EXP3로 연결한다.</p>
+            </div>
+          </div>
         </div>
 
-        <h3>(2) 한 정책 \(\pi\)의 regret \(R_T(\pi,y)\)</h3>
-        <div class="formula">
-          $$R_T(\pi,y)=
-          \mathbb E\Big[\sum_{t=1}^T y_{t,A_t}\Big]
-          \;-\;
-          \min_{j\in[N]}\sum_{t=1}^T y_{t,j}$$
+        <div class="concept-card">
+          <h3>한 줄 큰 그림</h3>
+          <div class="chip-wrap">
+            <span class="chip">Adversarial Bandit</span>
+            <span class="chip">Oblivious Adversary</span>
+            <span class="chip">Adaptive Adversary</span>
+            <span class="chip">Regret</span>
+            <span class="chip">Best Fixed Arm</span>
+            <span class="chip">Full Information</span>
+            <span class="chip">Bandit Feedback</span>
+            <span class="chip">IPW</span>
+            <span class="chip">EXP3</span>
+          </div>
         </div>
 
-        <ul>
-          <li>왼쪽: 네가 실제로 낸 <b>기대 누적 손실</b></li>
-          <li>오른쪽: 사후적으로(best in hindsight) 봤을 때 “항상 한 팔 \(j\)”만 썼다면 얻는 최소 누적 손실</li>
-        </ul>
+        <section class="section-card" id="setup">
+          <div class="section-head">
+            <div class="section-kicker">Setup</div>
+            <h2 class="section-title">1. Adversarial setup</h2>
+          </div>
+          <div class="section-body">
 
-        <div class="interpretation">
-          <b>비교대상</b>은 “매 라운드 다른 팔 고르는 초능력”이 아니라<br/>
-          <b>한 개의 고정 팔(best fixed arm)</b>임.
-        </div>
+            <h3>(1) Repeated game</h3>
+            <p>라운드 \(t=1,2,\dots,T\)마다 학습자는 행동 \(A_t\in[N]\)를 선택하고, 적대자는 그 라운드의 보상벡터 혹은 손실벡터를 정한다.</p>
 
-        <h3>(3) worst-case regret</h3>
-        <div class="formula">
-          $$R_T^*(\pi)=\sup_{y\in[0,1]^{T\times N}} R_T(\pi,y)$$
-        </div>
+            <div class="quote">
+              이 세팅의 핵심은 “데이터가 확률분포에서 잘 나온다”는 가정을 아예 하지 않는다는 점이다.
+            </div>
 
-        <h3>(4) “Deterministic policies cannot attain sublinear”</h3>
-        <ul>
-          <li>결정론이면 적이 너의 선택을 예측하고 매번 반대로 손실을 만들어서 선형 regret를 강제 가능:</li>
-        </ul>
-        <div class="formula">
-          $$R_T^*(\pi)=\Omega(T)$$
-        </div>
-        <ul>
-          <li>그래서 적대적 밴딧에서 sublinear worst-case regret(\(o(T)\), 보통 \(O(\sqrt{T})\))를 얻으려면 <b>무작위화가 필수</b>.</li>
-        </ul>
+            <ul>
+              <li>i.i.d. 가정 없음</li>
+              <li>stationary 가정 없음</li>
+              <li>보상벡터가 매 라운드 임의로 정해질 수 있음</li>
+            </ul>
 
-      </div>
-    </details>
-  </section>
+            <h3>(2) 분포 \(P_t\in\mathcal P_{N-1}\)</h3>
+            <div class="formula">
+              $$
+              \mathcal P_{N-1}=
+              \left\{
+              P_t=(p_{t1},\dots,p_{tN}) : p_{ti}\ge 0,\ \sum_{i=1}^N p_{ti}=1
+              \right\}
+              $$
+            </div>
 
-  <section>
-    <details>
-      <summary><h2>7) Full-information setting (all losses observed)</h2></summary>
-      <div class="content">
+            <p>알고리즘은 먼저 “이번 라운드에 각 팔을 어떤 확률로 선택할지”를 나타내는 분포 \(P_t\)를 정하고, 실제 행동은</p>
 
-        <p>여긴 “밴딧”이 아니라 “전문가 조언(experts) / 온라인 학습”에 가까운 세팅.</p>
+            <div class="formula">
+              $$
+              A_t\sim P_t
+              $$
+            </div>
 
-        <h3>라운드 \(t\)</h3>
-        <ol>
-          <li>학습자: 분포 \(P_t\) 고르고 \(A_t\sim P_t\)</li>
-          <li>적: 손실벡터 \(y_t=(y_{t1},\dots,y_{tN})\) 선택</li>
-          <li>학습자: <b>모든 팔의 손실 \(y_{t1},\dots,y_{tN}\)를 전부 관측</b></li>
-        </ol>
+            <p>로 샘플링된다.</p>
 
-        <h3>밴딧과 차이</h3>
-        <ul>
-          <li>밴딧: \(y_{t,A_t}\) 하나만 봄</li>
-          <li>full-info: \(y_t\) 전체를 봄 → 훨씬 쉬움</li>
-        </ul>
+            <div class="interpretation">
+              <b>왜 분포를 고르나?</b><br/>
+              적대적 환경에서는 결정론적 규칙이 매우 쉽게 깨진다. 그래서 <span class="highlight">무작위화 자체가 전략의 일부</span>가 된다.
+            </div>
 
-        <h3>regret 식(슬라이드)</h3>
-        <div class="formula">
-          $$R_T=
-          \sum_{t=1}^T \mathbb E[y_{t,A_t}]
-          \;-\;
-          \min_{j}\sum_{t=1}^T y_{t,j}$$
-        </div>
+            <h3>(3) 받는 보상</h3>
+            <p>bandit 세팅에서는 선택한 팔의 보상만 관측한다.</p>
+            <div class="formula">
+              $$
+              \text{reward}=x_{t,A_t}
+              $$
+            </div>
 
-        <ul>
-          <li>형태는 같지만, <b>정보량</b>이 달라서 가능한 알고리즘/분석이 달라짐</li>
-          <li>full-info: Hedge/Multiplicative Weights로 \(O(\sqrt{T\log N})\)</li>
-          <li>bandit: EXP3로 \(O(\sqrt{TN\log N})\) 같이 더 불리해짐(대략 \(N\)이 추가)</li>
-        </ul>
+            <h3>(4) Policy \(\pi\)</h3>
+            <div class="formula">
+              $$
+              \pi:([N]\times[0,1])^*\to \mathcal P_{N-1}
+              $$
+            </div>
 
-      </div>
-    </details>
-  </section>
+            <p>과거 기록</p>
 
-  <section>
-    <details>
-      <summary><h2>From full information → bandits (IPW trick)</h2></summary>
-      <div class="content">
+            <div class="formula">
+              $$
+              h_{t-1}=\big((A_1,\mathrm{obs}_1),\dots,(A_{t-1},\mathrm{obs}_{t-1})\big)
+              $$
+            </div>
 
-        <p>이제 진짜 중요한 전환점.</p>
+            <p>을 입력으로 받아 다음 라운드 분포 \(P_t\)를 내놓는 함수라고 보면 된다.</p>
 
-        <h3>(1) bandit에서는 뭐가 문제냐?</h3>
-        <ul>
-          <li>full-info: 모든 \(y_{t,i}\) 다 봄</li>
-          <li>bandit: 내가 고른 \(A_t\)의 \(y_{t,A_t}\)만 봄</li>
-        </ul>
+          </div>
+        </section>
 
-        <div class="quote">
-          “안 고른 버튼은 점수가 어땠을까?” 를 모름.
-        </div>
+        <section class="section-card" id="adversary-types">
+          <div class="section-head">
+            <div class="section-kicker">Types</div>
+            <h2 class="section-title">2. Oblivious vs Adaptive adversary</h2>
+          </div>
+          <div class="section-body">
 
-        <h3>(2) 해결 아이디어: IPW (Inverse Probability Weighting)</h3>
-        <p>정의</p>
-        <div class="formula">
-          $$\tilde y_{t,i}=
-          \frac{\mathbf 1(A_t=i)\,y_{t,i}}{P_{t,i}}$$
-        </div>
+            <h3>(1) 보상 대신 손실로 쓰기</h3>
+            <div class="formula">
+              $$
+              y_{ti}=1-x_{ti}
+              $$
+            </div>
+            <p>보상 최대화와 손실 최소화는 동치이므로 분석에서는 손실 표기를 자주 쓴다.</p>
 
-        <p>말로 풀면</p>
-        <ul>
-          <li>\(i\)번 버튼을 눌렀으면 실제 손실 \(y_{t,i}\)를 눌렀을 확률로 나눠서 크게 부풀림</li>
-          <li>\(i\)번 버튼을 안 눌렀으면 0으로 둠</li>
-        </ul>
+            <h3>(2) Oblivious adversary</h3>
+            <ul>
+              <li>핵심: 학습자의 미래 행동에 의존하지 않음</li>
+              <li>게임 시작 전에 전체 손실 시퀀스를 미리 정한 것처럼 생각할 수 있음</li>
+            </ul>
 
-        <h3>(3) 왜 이렇게 이상하게 하냐?</h3>
-        <p>핵심 성질 (중요!)</p>
-        <div class="formula">
-          $$\mathbb E_{t-1}[\tilde y_{t,i}]=y_{t,i}$$
-        </div>
-        <p> 기대값 기준으로는 “정답” (unbiased)</p>
+            <div class="step-box">
+              <div class="step-title">두 형태</div>
+              <div><b>Deterministic oblivious:</b> \((y_1,\dots,y_T)\)를 처음부터 고정</div>
+              <div><b>Randomized oblivious:</b> 손실 시퀀스에 대한 분포를 미리 정하고 시작 전에 한 번 샘플링</div>
+            </div>
 
-        <h4>예시</h4>
-        <ul>
-          <li>버튼 \(i\)를 누를 확률 = 0.2</li>
-          <li>실제 손실 = 1</li>
-        </ul>
-        <p>그럼:</p>
-        <ul>
-          <li>20% 확률로 \(1/0.2=5\)를 기록</li>
-          <li>80% 확률로 0 기록</li>
-        </ul>
-        <p>평균:</p>
-        <div class="formula">
-          $$0.2\times 5=1$$
-        </div>
-        <p> 평균적으로는 진짜 손실과 같음 (unbiased)</p>
+            <h3>(3) Adaptive adversary</h3>
+            <ul>
+              <li>손실 \(y_t\)가 학습자의 과거 행동이나 관측에 의존 가능</li>
+              <li>즉, 환경이 알고리즘의 행동에 반응함</li>
+            </ul>
 
-      </div>
-    </details>
-  </section>
+            <div class="summary-box">
+              <b>핵심 차이</b><br/>
+              oblivious는 “시나리오가 미리 고정된 세계”에 가깝고, adaptive는 “내 행동이 상대의 다음 행동을 바꾸는 상호작용 세계”에 가깝다.
+            </div>
 
-  <section>
-    <details>
-      <summary><h2>8) EXP3: preliminaries</h2></summary>
-      <div class="content">
+          </div>
+        </section>
 
-        <p>이제 full-info 알고리즘을 bandit용으로 개조</p>
+        <section class="section-card" id="examples">
+          <div class="section-head">
+            <div class="section-kicker">Examples</div>
+            <h2 class="section-title">3. Concrete examples</h2>
+          </div>
+          <div class="section-body">
 
-        <h3>(1) 관측값 정리</h3>
-        <p>보상:</p>
-        <div class="formula">
-          $$\hat x_{t,i}=
-          \frac{\mathbf 1(A_t=i)\,x_{t,i}}{P_{t,i}}$$
-        </div>
+            <h3>(A) Oblivious example: cyclic losses</h3>
+            <p>\(N=3\)에서 손실벡터가 주기적으로 돈다고 하자.</p>
 
-        <p>손실:</p>
-        <div class="formula">
-          $$\tilde y_{t,i}=
-          \frac{\mathbf 1(A_t=i)\,y_{t,i}}{P_{t,i}}$$
-        </div>
+            <ul>
+              <li>\(t\equiv1\pmod 3\): \(y_t=(0,1,1)\)</li>
+              <li>\(t\equiv2\pmod 3\): \(y_t=(1,0,1)\)</li>
+              <li>\(t\equiv0\pmod 3\): \(y_t=(1,1,0)\)</li>
+            </ul>
 
-        <p> 둘 다 IPW 추정량</p>
+            <p>이 경우 매 라운드 최적 팔은 바뀌지만, 학습자가 무엇을 하든 시퀀스 자체는 변하지 않는다. 그래서 oblivious다.</p>
 
-        <h3>(2) 평균은 맞는데… 문제는?</h3>
-        <p>분산이 큼. </p>
+            <h3>(B) Adaptive example: follow-the-leader trap</h3>
+            <div class="formula">
+              $$
+              y_{t,i}=
+              \begin{cases}
+              0 & i=A_{t-1}\\
+              1 & i\ne A_{t-1}
+              \end{cases}
+              \qquad (t\ge2)
+              $$
+            </div>
 
-        <p>슬라이드:</p>
-        <div class="formula">
-          $$\mathrm{Var}_{t-1}(\hat x_{t,i})
-          =
-          \frac{x_{t,i}^2(1-P_{t,i})}{P_{t,i}}$$
-        </div>
+            <p>직전 라운드에 네가 선택한 팔만 이번 라운드에 손실 0이 되게 만드는 구조다.</p>
 
-        <div class="interpretation">
-          <b>\(P_{t,i}\) 작으면 → 분산 폭발</b><br/>
-          그래서 EXP3에서는 확률 하한을 두거나 exploration을 섞음.
-        </div>
+            <div class="quote">
+              적이 네 과거 선택을 보고 손실을 설계할 수 있기 때문에, 특정 알고리즘을 계속 유도하거나 함정에 빠뜨릴 수 있다.
+            </div>
 
-        <h3>(3) 최종 EXP3 구조</h3>
-        <p>\(\tilde y_{t,i}\)로 가짜 full-info 손실 만들고</p>
+          </div>
+        </section>
 
-        <p>누적:</p>
-        <div class="formula">
-          $$\tilde L_{t,i}=\sum_{s=1}^t \tilde y_{s,i}$$
-        </div>
+        <section class="section-card" id="applications">
+          <div class="section-head">
+            <div class="section-kicker">Applications</div>
+            <h2 class="section-title">4. Applications of oblivious and adaptive adversaries</h2>
+          </div>
+          <div class="section-body">
 
-        <p>그걸로 다시</p>
-        <div class="formula">
-          $$P_{t,i}\propto \exp\!\left(-\eta \tilde L_{t-1,i}\right)$$
-        </div>
+            <div class="grid2">
+              <div class="mini-card">
+                <h3>Oblivious adversary examples</h3>
+                <ol>
+                  <li><b>고정 캠페인 온라인 광고</b><br/>미리 정해진 클릭확률을 리플레이하는 경우</li>
+                  <li><b>과거 시장 리플레이</b><br/>과거 수익률 시퀀스를 그대로 재생하는 경우</li>
+                  <li><b>추천 시스템 오프라인 평가</b><br/>이미 수집된 로그로만 평가하는 경우</li>
+                </ol>
+              </div>
 
-        <p> “full-info 알고리즘 + 가짜 데이터”</p>
+              <div class="mini-card">
+                <h3>Adaptive adversary examples</h3>
+                <ol>
+                  <li><b>실시간 웹 개인화</b><br/>현재 추천이 미래 사용자 반응을 바꿈</li>
+                  <li><b>보안/침입탐지</b><br/>공격자가 방어정책에 적응</li>
+                  <li><b>온라인 가격결정</b><br/>경쟁자가 네 과거 가격에 반응</li>
+                </ol>
+              </div>
+            </div>
 
-      </div>
-    </details>
-  </section>
+            <div class="note">
+              공통적으로 보면, oblivious는 “네 행동이 미래 데이터를 바꾸지 않는다”, adaptive는 “네 행동이 미래 환경을 바꾼다”로 이해하면 된다.
+            </div>
 
-  <div class="footer">
-    &copy; 2026 Bandits Notes
+          </div>
+        </section>
+
+        <section class="section-card" id="regret">
+          <div class="section-head">
+            <div class="section-kicker">Objective</div>
+            <h2 class="section-title">5. Regret definitions</h2>
+          </div>
+          <div class="section-body">
+
+            <h3>(1) 환경 \(y\)</h3>
+            <div class="formula">
+              $$
+              y\in[0,1]^{T\times N},\qquad
+              y=\{y_{t,i}\}_{t\le T,\ i\le N}
+              $$
+            </div>
+
+            <h3>(2) 정책 \(\pi\)의 regret</h3>
+            <div class="formula">
+              $$
+              R_T(\pi,y)=
+              \mathbb E\Big[\sum_{t=1}^T y_{t,A_t}\Big]
+              -
+              \min_{j\in[N]}\sum_{t=1}^T y_{t,j}
+              $$
+            </div>
+
+            <ul>
+              <li>첫 항: 알고리즘의 기대 누적 손실</li>
+              <li>둘째 항: hindsight에서 가장 좋았던 하나의 고정 팔의 누적 손실</li>
+            </ul>
+
+            <div class="interpretation">
+              <b>비교 대상은 무엇인가?</b><br/>
+              매 라운드마다 최적 팔을 바꿔 고르는 초능력과 비교하는 것이 아니라, <span class="highlight">하나의 고정 팔(best fixed arm)</span>과 비교한다.
+            </div>
+
+            <h3>(3) Worst-case regret</h3>
+            <div class="formula">
+              $$
+              R_T^*(\pi)=\sup_{y\in[0,1]^{T\times N}} R_T(\pi,y)
+              $$
+            </div>
+
+            <h3>(4) 왜 deterministic policy는 안 되나</h3>
+            <p>정책이 결정론적이면 적은 네 행동을 예측할 수 있고, 그에 맞춰 매번 최악의 손실을 줄 수 있다.</p>
+
+            <div class="formula">
+              $$
+              R_T^*(\pi)=\Omega(T)
+              $$
+            </div>
+
+            <div class="warn">
+              적대적 밴딧에서 sublinear regret를 원하면 무작위화는 선택이 아니라 필수다.
+            </div>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="fullinfo">
+          <div class="section-head">
+            <div class="section-kicker">Feedback Model</div>
+            <h2 class="section-title">6. Full-information setting</h2>
+          </div>
+          <div class="section-body">
+
+            <p>이 세팅은 bandit보다 훨씬 쉽다. 이유는 모든 팔의 손실을 다 볼 수 있기 때문이다.</p>
+
+            <h3>라운드 구조</h3>
+            <ol>
+              <li>학습자: 분포 \(P_t\)를 정하고 \(A_t\sim P_t\)</li>
+              <li>적: 손실벡터 \(y_t=(y_{t1},\dots,y_{tN})\)를 선택</li>
+              <li>학습자: \(y_t\) 전체를 관측</li>
+            </ol>
+
+            <div class="grid2">
+              <div class="mini-card">
+                <h4>Bandit</h4>
+                <p>오직 \(y_{t,A_t}\) 하나만 본다.</p>
+              </div>
+              <div class="mini-card">
+                <h4>Full-information</h4>
+                <p>\(y_{t,1},\dots,y_{t,N}\) 전체를 본다.</p>
+              </div>
+            </div>
+
+            <div class="formula">
+              $$
+              R_T=
+              \sum_{t=1}^T \mathbb E[y_{t,A_t}]
+              -
+              \min_j\sum_{t=1}^T y_{t,j}
+              $$
+            </div>
+
+            <p>형식은 같지만 정보량이 다르기 때문에, full-information에서는 Hedge/Multiplicative Weights 같은 더 강한 알고리즘이 가능하다.</p>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="ipw">
+          <div class="section-head">
+            <div class="section-kicker">Bridge</div>
+            <h2 class="section-title">7. From full information to bandits: IPW trick</h2>
+          </div>
+          <div class="section-body">
+
+            <h3>(1) Bandit의 진짜 문제</h3>
+            <ul>
+              <li>고른 팔의 손실만 본다</li>
+              <li>안 고른 팔의 손실은 모른다</li>
+            </ul>
+
+            <div class="quote">
+              “안 눌러본 버튼이 이번 라운드에 좋았는지 나빴는지”를 직접은 알 수 없다.
+            </div>
+
+            <h3>(2) IPW 추정량</h3>
+            <div class="formula">
+              $$
+              \tilde y_{t,i}=
+              \frac{\mathbf 1(A_t=i)\,y_{t,i}}{P_{t,i}}
+              $$
+            </div>
+
+            <ul>
+              <li>\(i\)번 팔을 골랐으면 실제 손실을 \(P_{t,i}\)로 나눠 크게 보정</li>
+              <li>안 골랐으면 0</li>
+            </ul>
+
+            <h3>(3) 왜 이게 좋은가</h3>
+            <div class="formula">
+              $$
+              \mathbb E_{t-1}[\tilde y_{t,i}] = y_{t,i}
+              $$
+            </div>
+
+            <p>즉, 기대값 기준으로는 진짜 손실을 정확히 복원한다. 그래서 unbiased estimator다.</p>
+
+            <div class="summary-box">
+              IPW의 핵심은 “하나만 관측하는 bandit 환경에서도, 평균적으로는 전체 손실벡터를 본 것처럼 쓸 수 있는 추정량을 만든다”는 점이다.
+            </div>
+
+            <h3>(4) 간단 예시</h3>
+            <ul>
+              <li>\(P_{t,i}=0.2\)</li>
+              <li>실제 손실 \(y_{t,i}=1\)</li>
+            </ul>
+
+            <p>그러면</p>
+            <ul>
+              <li>20% 확률로 \(1/0.2=5\)</li>
+              <li>80% 확률로 0</li>
+            </ul>
+
+            <div class="formula">
+              $$
+              0.2\times 5 = 1
+              $$
+            </div>
+
+            <p>평균적으로 진짜 손실 1과 일치한다.</p>
+
+          </div>
+        </section>
+
+        <section class="section-card" id="exp3">
+          <div class="section-head">
+            <div class="section-kicker">Algorithm Bridge</div>
+            <h2 class="section-title">8. EXP3 preliminaries</h2>
+          </div>
+          <div class="section-body">
+
+            <h3>(1) 보상/손실의 IPW 형태</h3>
+            <div class="formula">
+              $$
+              \hat x_{t,i}=
+              \frac{\mathbf 1(A_t=i)\,x_{t,i}}{P_{t,i}},
+              \qquad
+              \tilde y_{t,i}=
+              \frac{\mathbf 1(A_t=i)\,y_{t,i}}{P_{t,i}}
+              $$
+            </div>
+
+            <h3>(2) 문제: 분산이 큼</h3>
+            <div class="formula">
+              $$
+              \mathrm{Var}_{t-1}(\hat x_{t,i})
+              =
+              \frac{x_{t,i}^2(1-P_{t,i})}{P_{t,i}}
+              $$
+            </div>
+
+            <div class="warn">
+              \(P_{t,i}\)가 너무 작으면 분산이 크게 폭발한다. 그래서 exploration을 섞거나 확률 하한을 둬야 한다.
+            </div>
+
+            <h3>(3) EXP3의 큰 구조</h3>
+            <p>IPW로 만든 손실 추정량을 누적한다.</p>
+
+            <div class="formula">
+              $$
+              \tilde L_{t,i}=\sum_{s=1}^t \tilde y_{s,i}
+              $$
+            </div>
+
+            <p>그리고 이를 이용해 다음 라운드 분포를 exponential weights 형태로 정한다.</p>
+
+            <div class="formula">
+              $$
+              P_{t,i}\propto \exp\!\left(-\eta \tilde L_{t-1,i}\right)
+              $$
+            </div>
+
+            <div class="interpretation">
+              <b>해석</b><br/>
+              EXP3는 사실상 <span class="highlight">full-information 알고리즘을 bandit용 가짜 데이터(IPW 추정량)로 돌리는 방식</span>이라고 볼 수 있다.
+            </div>
+
+            <div class="summary-box">
+              정리하면, EXP3는 “보지 못한 손실을 unbiased하게 추정하고, 그 추정 손실에 exponential weighting을 적용하는 알고리즘”이다.
+            </div>
+
+          </div>
+        </section>
+
+        <div class="footer">&copy; 2026 Bandits Notes</div>
+      </article>
+    </main>
   </div>
 
-</div>
+  <script>
+    const miniLinks = [...document.querySelectorAll('.mini-link')];
+    const observedSections = [...document.querySelectorAll('.section-card')];
 
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          miniLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      rootMargin:'-20% 0px -60% 0px',
+      threshold:0.05
+    });
+
+    observedSections.forEach(section => observer.observe(section));
+  </script>
 </body>
 </html>
