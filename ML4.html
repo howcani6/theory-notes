@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Probability, Estimation, and Learning — Notion Notes</title>
+
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['$$', '$$']]
+      }
+    };
+  </script>
+  <script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      --primary:#2563eb;
+      --primary-dark:#1d4ed8;
+      --secondary:#3b82f6;
+      --accent:#f59e0b;
+      --bg:#f8fafc;
+      --bg-soft:#eef4ff;
+      --text:#1e293b;
+      --card:#ffffff;
+      --muted:#64748b;
+      --border:#e2e8f0;
+      --success-bg:#f0fdf4;
+      --success-border:#bbf7d0;
+      --warn-bg:#fff7ed;
+      --warn-border:#fed7aa;
+      --info-bg:#eff6ff;
+      --info-border:#bfdbfe;
+      --shadow-sm:0 4px 10px rgba(15,23,42,.05);
+      --shadow-md:0 14px 30px rgba(15,23,42,.08);
+      --radius-lg:24px;
+      --radius-md:18px;
+      --radius-sm:12px;
+      --sidebar-width:300px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+      background:linear-gradient(180deg,#f8fbff 0%,#f8fafc 100%);
+      color:var(--text);
+      line-height:1.72;
+    }
+
+    a{color:inherit;text-decoration:none}
+
+    .layout{
+      display:grid;
+      grid-template-columns:var(--sidebar-width) minmax(0,1fr);
+      min-height:100vh;
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      overflow-y:auto;
+      padding:22px 18px 28px;
+      background:rgba(255,255,255,.93);
+      backdrop-filter:blur(14px);
+      border-right:1px solid var(--border);
+    }
+
+    .sidebar h2{
+      margin:0 0 6px;
+      font-size:1.12rem;
+      color:var(--primary-dark);
+      font-weight:850;
+      letter-spacing:-.02em;
+    }
+
+    .sidebar p{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .side-group{margin-bottom:18px}
+    .side-label{
+      margin:0 0 10px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .side-links{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .mini-link{
+      display:block;
+      padding:9px 10px;
+      background:#fff;
+      border:1px solid #edf2f7;
+      border-radius:12px;
+      color:var(--muted);
+      font-size:.9rem;
+      transition:.2s ease;
+    }
+
+    .mini-link:hover,
+    .mini-link.active{
+      background:#eff6ff;
+      color:var(--primary-dark);
+      border-color:#cfe0ff;
+    }
+
+    .content{
+      min-width:0;
+      padding:22px 28px 60px;
+    }
+
+    .hero{
+      position:relative;
+      overflow:hidden;
+      padding:38px 30px;
+      border-radius:30px;
+      background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 60%,#3b82f6 100%);
+      color:#fff;
+      box-shadow:0 20px 42px rgba(37,99,235,.22);
+      margin-bottom:22px;
+    }
+
+    .hero::before,
+    .hero::after{
+      content:"";
+      position:absolute;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      pointer-events:none;
+    }
+
+    .hero::before{width:220px;height:220px;top:-90px;right:-40px}
+    .hero::after{width:140px;height:140px;bottom:-50px;left:-20px}
+
+    .hero-inner{position:relative;z-index:1}
+    .hero h1{
+      margin:0;
+      font-size:2.15rem;
+      line-height:1.12;
+      letter-spacing:-.02em;
+    }
+    .hero p{
+      margin:10px 0 0;
+      opacity:.94;
+      max-width:860px;
+    }
+
+    .top-summary{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .summary-card{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:16px 18px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .summary-card .label{
+      font-size:.8rem;
+      color:var(--muted);
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .summary-card .value{
+      margin-top:6px;
+      font-size:1rem;
+      font-weight:760;
+      line-height:1.5;
+    }
+
+    .article{min-width:0;max-width:1120px}
+
+    .flow-card,
+    .concept-card,
+    .section-card{
+      background:var(--card);
+      border:1px solid var(--border);
+      border-radius:22px;
+      box-shadow:var(--shadow-sm);
+    }
+
+    .flow-card,
+    .concept-card{
+      padding:18px 20px;
+      margin-bottom:18px;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .flow-card h3,
+    .concept-card h3{
+      margin:0 0 10px;
+      color:var(--primary-dark);
+      font-size:1.08rem;
+    }
+
+    .chip-wrap{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      padding:7px 11px;
+      border-radius:999px;
+      background:#fff;
+      border:1px solid var(--border);
+      font-size:.84rem;
+      font-weight:700;
+      color:#0f172a;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .flow-step{
+      background:#fff;
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:14px 14px 13px;
+    }
+
+    .flow-step .step{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.74rem;
+      font-weight:800;
+      color:var(--secondary);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .flow-step .title{font-weight:780;margin-bottom:6px;color:#0f172a}
+    .flow-step p{margin:0;color:var(--muted);font-size:.92rem;line-height:1.55}
+
+    .section-card{overflow:hidden;margin-bottom:18px;scroll-margin-top:24px}
+    .section-head{
+      padding:24px 26px 16px;
+      border-bottom:1px solid #edf2f7;
+      background:linear-gradient(180deg,#fbfdff 0%,#ffffff 100%);
+    }
+
+    .section-kicker{
+      display:inline-block;
+      margin-bottom:8px;
+      font-size:.78rem;
+      font-weight:800;
+      color:var(--secondary);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-size:1.42rem;
+      font-weight:820;
+      letter-spacing:-.02em;
+      color:#0f172a;
+    }
+
+    .section-title::before{
+      content:"";
+      width:7px;
+      height:28px;
+      border-radius:999px;
+      background:linear-gradient(180deg,var(--primary),var(--secondary));
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .section-body{padding:22px 28px 28px}
+    .section-body > :first-child{margin-top:0}
+
+    h3{margin:22px 0 10px;font-size:1.12rem;color:var(--secondary)}
+    h4{margin:18px 0 8px;font-size:1rem;color:#0f172a}
+    p{margin:10px 0}
+    ul{margin:10px 0 0 20px;padding:0}
+    li{margin:6px 0}
+
+    .quote,
+    .note,
+    .warn,
+    .summary-box,
+    .bridge{
+      border-radius:16px;
+      padding:16px 18px;
+      margin:16px 0;
+    }
+
+    .quote{
+      background:#eff6ff;
+      border-left:4px solid var(--secondary);
+      font-style:italic;
+    }
+
+    .note{background:#f8fafc;border:1px solid var(--border)}
+    .warn{background:var(--warn-bg);border:1px solid var(--warn-border);color:#9a3412}
+    .summary-box{background:var(--success-bg);border:1px solid var(--success-border)}
+    .bridge{background:var(--info-bg);border:1px solid var(--info-border)}
+
+    .formula{
+      background:#f1f5f9;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:16px 18px;
+      margin:16px 0;
+      overflow-x:auto;
+    }
+
+    .highlight{background:#fef3c7;padding:4px 8px;border-radius:8px;font-weight:800}
+    .muted{color:var(--muted)}
+    .good{color:#16a34a;font-weight:800}
+    .bad{color:#dc2626;font-weight:800}
+
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+
+    .mini-card{
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+      background:#fff;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:16px 0;
+      overflow:hidden;
+      border-radius:14px;
+    }
+
+    th,td{
+      padding:12px;
+      border:1px solid var(--border);
+      text-align:left;
+      vertical-align:top;
+    }
+
+    th{background:#f8fafc;color:var(--primary-dark)}
+
+    .footer{text-align:center;color:var(--muted);font-size:.9rem;margin-top:28px}
+
+    @media (max-width:1100px){
+      .top-summary{grid-template-columns:repeat(2,minmax(0,1fr));}
+    }
+
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:static;height:auto;border-right:none;border-bottom:1px solid var(--border)}
+      .content{padding:18px 16px 48px}
+    }
+
+    @media (max-width:900px){
+      .flow-grid{grid-template-columns:1fr 1fr}
+      .grid3{grid-template-columns:1fr}
+    }
+
+    @media (max-width:760px){
+      .top-summary{grid-template-columns:1fr}
+      .grid2{grid-template-columns:1fr}
+      .flow-grid{grid-template-columns:1fr}
+      .hero{padding:30px 22px}
+      .hero h1{font-size:1.85rem}
+      .section-head{padding:20px 20px 14px}
+      .section-body{padding:18px 20px 22px}
+      .section-title{font-size:1.25rem}
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2>Machine Learning</h2>
+
+      <div class="side-group">
+        <div class="side-label">Reading Map</div>
+        <div class="side-links">
+          <a class="mini-link" href="#flow">전체 흐름</a>
+          <a class="mini-link" href="#theta-data">확률, 파라미터, 데이터</a>
+          <a class="mini-link" href="#mle-map">MLE와 MAP</a>
+          <a class="mini-link" href="#freq-bayes">Frequentist vs Bayesian</a>
+          <a class="mini-link" href="#coin">Coin Tossing의 의미</a>
+          <a class="mini-link" href="#classification">분류로의 확장</a>
+          <a class="mini-link" href="#naive-bayes">Naive Bayes</a>
+          <a class="mini-link" href="#nb-linear">Naive Bayes와 선형성</a>
+          <a class="mini-link" href="#logistic">Logistic Regression</a>
+          <a class="mini-link" href="#gd">Gradient Descent</a>
+          <a class="mini-link" href="#convergence">수렴 이론</a>
+          <a class="mini-link" href="#optimizers">Optimizer</a>
+          <a class="mini-link" href="#linear-reg">Linear Regression</a>
+          <a class="mini-link" href="#wrapup">최종 요약</a>
+        </div>
+      </div>
+
+      <div class="side-group">
+        <div class="side-label">핵심 수식</div>
+        <div class="side-links">
+          <a class="mini-link" href="#mle-map">\(\hat\theta_{MLE}, \hat\theta_{MAP}\)</a>
+          <a class="mini-link" href="#coin">\(P(D\mid\theta)\)</a>
+          <a class="mini-link" href="#naive-bayes">\(P(X\mid Y)=\prod_j P(X_j\mid Y)\)</a>
+          <a class="mini-link" href="#logistic">\(P(y=1\mid x)=\sigma(w^Tx+b)\)</a>
+          <a class="mini-link" href="#gd">\(w_{t+1}=w_t-\alpha\nabla \ell(w_t)\)</a>
+          <a class="mini-link" href="#convergence">smoothness inequality</a>
+          <a class="mini-link" href="#linear-reg">\(w^*=(X^TX)^{-1}X^Ty\)</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="hero">
+        <div class="hero-inner">
+          <h1>Machine Learning 4</h1>
+          <p>데이터를 보고 숨겨진 파라미터를 어떻게 추정할 것인가?</p>
+        </div>
+      </header>
+
+      <section class="top-summary">
+        <div class="summary-card">
+          <div class="label">Big Question</div>
+          <div class="value">데이터로부터 숨겨진 파라미터를 어떻게 추정할까?</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Main Split</div>
+          <div class="value">MLE는 likelihood 중심, MAP는 likelihood + prior 중심</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Model Shift</div>
+          <div class="value">Generative인 Naive Bayes에서 Discriminative인 Logistic으로 이동</div>
+        </div>
+        <div class="summary-card">
+          <div class="label">Optimization Shift</div>
+          <div class="value">Closed form이 없을 때 Gradient Descent와 수렴 이론으로 감</div>
+        </div>
+      </section>
+
+      <article class="article">
+        <div class="flow-card" id="flow">
+          <h3>Flow Overview</h3>
+          <div class="flow-grid">
+            <div class="flow-step">
+              <div class="step">Step 1</div>
+              <div class="title">확률과 파라미터의 의미</div>
+              <p>\(\theta\), \(D\), likelihood, posterior의 방향 차이를 잡는다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 2</div>
+              <div class="title">MLE와 MAP</div>
+              <p>데이터만 볼지, prior까지 함께 볼지를 비교한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 3</div>
+              <div class="title">분류 모델 이해</div>
+              <p>Coin Tossing에서 Naive Bayes, Logistic Regression으로 연결한다.</p>
+            </div>
+            <div class="flow-step">
+              <div class="step">Step 4</div>
+              <div class="title">학습과 최적화</div>
+              <p>Gradient Descent, 수렴 조건, optimizer, Linear Regression까지 이어진다.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="concept-card">
+          <h3>핵심 기호 한 번에 보기</h3>
+          <div class="chip-wrap">
+            <span class="chip">\(\theta\): 파라미터</span>
+            <span class="chip">\(D\): 관측 데이터</span>
+            <span class="chip">\(P(D\mid\theta)\): likelihood</span>
+            <span class="chip">\(P(\theta\mid D)\): posterior</span>
+            <span class="chip">\(P(Y\mid X)\): 분류 목표</span>
+            <span class="chip">\(h\): 예측기</span>
+            <span class="chip">\(w\): 가중치</span>
+            <span class="chip">\(\ell(w)\): loss</span>
+          </div>
+        </div>
+
+        <section class="section-card" id="theta-data">
+          <div class="section-head">
+            <div class="section-kicker">Foundations</div>
+            <h2 class="section-title">1. 확률, 파라미터, 데이터의 의미</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이 개념을 먼저 보는가</h3>
+            <p>MLE, MAP, Naive Bayes, Logistic Regression, Linear Regression은 전부 결국 <span class="highlight">데이터를 보고 파라미터를 추정하는 문제</span>로 연결된다. 따라서 먼저 \(\theta\)와 \(D\)가 무엇인지, 그리고 likelihood와 posterior가 무엇인지 분명하게 잡아야 한다.</p>
+
+            <h3>\(\theta\)와 \(D\)의 뜻</h3>
+            <div class="grid2">
+              <div class="mini-card">
+                <h4>파라미터 \(\theta\)</h4>
+                <p>모델 안에 숨어 있는 수치적 규칙이다. 직접 관측되지 않지만 데이터 생성 구조를 결정한다.</p>
+              </div>
+              <div class="mini-card">
+                <h4>데이터 \(D\)</h4>
+                <p>우리가 실제로 관측한 결과이다. 보통 학습에서는 데이터만 보이고, 파라미터는 직접 보이지 않는다.</p>
+              </div>
+            </div>
+
+            <div class="quote">어떤 진짜 파라미터 \(\theta\)가 있고, 그 \(\theta\)에 의해 데이터 \(D\)가 생성되었다고 생각하는 것이 전체 출발점이다.</div>
+
+            <h3>likelihood와 posterior의 차이</h3>
+            <div class="formula">$$P(D\mid\theta)$$</div>
+            <p>이 식은 <b>“\(\theta\)라고 가정했을 때 데이터 \(D\)가 얼마나 그럴듯한가?”</b>를 묻는다. 즉, 원인을 먼저 고정하고 결과를 본다.</p>
+
+            <div class="formula">$$P(\theta\mid D)$$</div>
+            <p>이 식은 <b>“데이터 \(D\)를 본 뒤에 어떤 \(\theta\)를 더 믿게 되는가?”</b>를 묻는다. 즉, 결과를 보고 원인에 대한 믿음을 업데이트한다.</p>
+
+            <div class="warn">많이 헷갈리지만, \(P(D\mid\theta)\)와 \(P(\theta\mid D)\)는 일반적으로 같지 않다. 방향이 다르기 때문이다.</div>
+
+            <h3>베이즈 정리로 연결</h3>
+            <div class="formula">$$P(\theta\mid D)=\frac{P(D\mid\theta)P(\theta)}{P(D)}$$</div>
+            <p>posterior는 likelihood와 prior를 결합해 만들어진다. 따라서 posterior를 이해하려면 likelihood뿐 아니라 prior도 함께 이해해야 한다.</p>
+
+            <h3>헷갈리기 쉬운 포인트</h3>
+            <ul>
+              <li>likelihood는 \(\theta\)에 대한 함수로 볼 때의 이름이지, 항상 확률분포처럼 해석하는 것은 아니다.</li>
+              <li>파라미터 \(\theta\)를 확률변수로 볼 수 있는지는 관점에 따라 다르다. 이 차이가 곧 Frequentist와 Bayesian의 차이로 이어진다.</li>
+            </ul>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 “그러면 실제로 \(\theta\)를 어떻게 고를 것인가?”라는 질문으로 넘어가며, 그 대표 답이 MLE와 MAP이다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="mle-map">
+          <div class="section-head">
+            <div class="section-kicker">Estimation</div>
+            <h2 class="section-title">2. MLE와 MAP</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이 개념을 보는가</h3>
+            <p>데이터를 보고 파라미터를 추정하는 방법에는 여러 가지가 있지만, 그중 가장 대표적인 것이 MLE와 MAP이다. 이 둘을 이해하면 뒤에서 나오는 regularization까지 자연스럽게 연결된다.</p>
+
+            <h3>MLE</h3>
+            <div class="formula">$$\hat{\theta}_{\mathrm{MLE}}=\arg\max_\theta P(D\mid\theta)$$</div>
+            <p>의미는 분명하다. <b>“내가 관측한 데이터를 가장 잘 설명하는 \(\theta\)를 고르자.”</b> 즉, 데이터만 보고 가장 그럴듯한 파라미터를 찾는다.</p>
+
+            <h3>MAP</h3>
+            <div class="formula">$$\hat{\theta}_{\mathrm{MAP}}=\arg\max_\theta P(\theta\mid D)$$</div>
+            <p>베이즈 정리를 쓰면</p>
+            <div class="formula">$$\hat{\theta}_{\mathrm{MAP}}=\arg\max_\theta P(D\mid\theta)P(\theta)$$</div>
+            <p>가 된다. 즉 MAP는 데이터의 설명력과 사전 믿음을 동시에 반영한다.</p>
+
+            <h3>prior의 의미</h3>
+            <div class="formula">$$P(\theta)$$</div>
+            <p>prior는 데이터를 보기 전부터 가지고 있던 \(\theta\)에 대한 믿음이다. 예를 들어 동전이라면 \(\theta=0\)이나 \(\theta=1\) 같은 극단적 값보다 \(\theta=0.5\) 근처를 더 그럴듯하다고 보는 믿음을 prior로 넣을 수 있다.</p>
+
+            <table>
+              <thead>
+                <tr>
+                  <th>비교 항목</th>
+                  <th>MLE</th>
+                  <th>MAP</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>목적함수</td>
+                  <td>\(P(D\mid\theta)\)</td>
+                  <td>\(P(D\mid\theta)P(\theta)\)</td>
+                </tr>
+                <tr>
+                  <td>데이터 외 정보</td>
+                  <td>사용 안 함</td>
+                  <td>prior 사용</td>
+                </tr>
+                <tr>
+                  <td>적은 데이터</td>
+                  <td>극단적 추정 가능</td>
+                  <td>더 안정적일 수 있음</td>
+                </tr>
+                <tr>
+                  <td>뒤 연결</td>
+                  <td>likelihood 중심</td>
+                  <td>regularization과 연결</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3>핵심 해석</h3>
+            <div class="summary-box">
+              <ul>
+                <li><b>MLE:</b> 데이터만 보고 고른다.</li>
+                <li><b>MAP:</b> 데이터도 보되, 파라미터가 원래 어떨 것 같은지에 대한 믿음도 함께 반영한다.</li>
+              </ul>
+            </div>
+
+            <h3>헷갈리기 쉬운 포인트</h3>
+            <ul>
+              <li>MAP는 posterior 전체를 쓰는 true Bayesian prediction과 다르다. posterior의 최고점 하나만 뽑는 것이다.</li>
+              <li>prior가 들어간다고 해서 무조건 더 좋은 것은 아니다. prior가 잘못되면 결과를 왜곡할 수 있다.</li>
+            </ul>
+
+            <div class="bridge"><b>다음 연결:</b> 왜 MLE는 likelihood를 보고, MAP는 posterior를 보는지가 철학적으로 어디서 나오는지 이해하려면 Frequentist와 Bayesian의 차이를 봐야 한다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="freq-bayes">
+          <div class="section-head">
+            <div class="section-kicker">Philosophy</div>
+            <h2 class="section-title">3. Frequentist vs Bayesian</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이 구분이 필요한가</h3>
+            <p>MLE와 MAP는 단순히 계산법 차이가 아니라, <span class="highlight">파라미터를 무엇으로 보느냐</span>에 대한 철학 차이에서 나온다.</p>
+
+            <div class="grid2">
+              <div class="mini-card">
+                <h4>Frequentist</h4>
+                <ul>
+                  <li>\(\theta\)는 고정된 진짜 값</li>
+                  <li>우리는 그 값을 모를 뿐</li>
+                  <li>그래서 \(P(D\mid\theta)\)를 중심으로 본다</li>
+                </ul>
+              </div>
+              <div class="mini-card">
+                <h4>Bayesian</h4>
+                <ul>
+                  <li>\(\theta\)도 불확실성의 대상</li>
+                  <li>따라서 \(P(\theta)\), \(P(\theta\mid D)\)가 의미 있다</li>
+                  <li>데이터를 보면서 믿음을 업데이트한다</li>
+                </ul>
+              </div>
+            </div>
+
+            <h3>수식 관점에서의 차이</h3>
+            <p>Frequentist에게는 \(\theta\)가 확률변수가 아니므로 \(P(\theta)\)를 직접 다루지 않는 것이 자연스럽다. 반면 Bayesian에게는 \(\theta\)도 확률모형 안에 들어가므로 posterior가 자연스럽다.</p>
+
+            <div class="quote">Frequentist는 “정답은 이미 하나로 정해져 있다”고 보고, Bayesian은 “정답에 대한 믿음이 분포로 존재한다”고 본다.</div>
+
+            <h3>어디로 이어지는가</h3>
+            <ul>
+              <li>MLE는 Frequentist 감각과 강하게 연결된다.</li>
+              <li>MAP와 posterior prediction은 Bayesian 감각과 연결된다.</li>
+              <li>뒤에서 regularization을 prior로 해석할 수 있게 된다.</li>
+            </ul>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 이 차이를 가장 단순하게 보여주는 예제가 Coin Tossing이다. 여기서 likelihood, prior, posterior, MLE, MAP가 한 번에 연결된다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="coin">
+          <div class="section-head">
+            <div class="section-kicker">Canonical Example</div>
+            <h2 class="section-title">4. Coin Tossing은 왜 핵심 예제인가</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이 예제를 보는가</h3>
+            <p>Coin Tossing은 매우 단순하지만, 우리가 뒤에서 계속 쓰는 거의 모든 개념을 압축해서 보여준다. 즉 likelihood, MLE, prior, posterior, MAP, pseudo-count, true Bayesian prediction까지 다 들어 있다.</p>
+
+            <h3>모델</h3>
+            <p>앞면 확률을 \(\theta\)라고 두면</p>
+            <div class="formula">$$P(H)=\theta,\qquad P(T)=1-\theta$$</div>
+            <p>앞면이 \(n_H\)번, 뒷면이 \(n_T\)번 나왔다면 likelihood는</p>
+            <div class="formula">$$P(D\mid\theta)=\binom{n_H+n_T}{n_H}\theta^{n_H}(1-\theta)^{n_T}$$</div>
+            <p>이다.</p>
+
+            <h3>수식의 의미</h3>
+            <p>이 식은 앞면이 많이 나올수록 \(\theta\)가 큰 쪽이 유리하고, 뒷면이 많이 나올수록 \(1-\theta\)가 큰 쪽이 유리하다는 뜻이다. 즉 관측한 빈도가 가능한 파라미터를 조여 가는 구조다.</p>
+
+            <h3>MLE의 의미</h3>
+            <p>로그를 취해 정리하면 결국 MLE는 관측 비율이 된다.</p>
+            <div class="formula">$$\hat\theta_{\mathrm{MLE}}=\frac{n_H}{n_H+n_T}$$</div>
+            <p>즉 데이터만 보면 “앞면이 나온 비율”이 가장 그럴듯한 파라미터가 된다.</p>
+
+            <h3>MAP와 Beta prior</h3>
+            <p>prior를</p>
+            <div class="formula">$$\theta\sim\mathrm{Beta}(\alpha,\beta)$$</div>
+            <p>로 두면</p>
+            <div class="formula">$$P(\theta)\propto \theta^{\alpha-1}(1-\theta)^{\beta-1}$$</div>
+            <p>이고, posterior는 다시 Beta family 안에 남는다. 이 구조를 통해 prior가 pseudo-count처럼 작동한다는 해석이 가능해진다.</p>
+
+            <h3>pseudo-count 해석</h3>
+            <p>Beta prior는 마치 미리</p>
+            <ul>
+              <li>\(\alpha-1\)개의 가짜 head</li>
+              <li>\(\beta-1\)개의 가짜 tail</li>
+            </ul>
+            <p>을 본 것처럼 작동한다. 그래서 적은 데이터에서 MLE가 너무 극단적으로 가는 것을 완화해준다.</p>
+
+            <h3>true Bayesian prediction과 MAP의 차이</h3>
+            <div class="formula">$$P(H\mid D)=\int P(H\mid\theta)P(\theta\mid D)\,d\theta$$</div>
+            <p>true Bayesian prediction은 posterior 전체를 평균낸다. 반면 MAP는 posterior에서 가장 높은 점 하나만 택한다. 이 차이는 “점 추정”과 “분포 전체 사용”의 차이이다.</p>
+
+            <div class="warn">Coin Tossing에서는 계산이 쉬워서 개념이 잘 보인다. 그래서 뒤의 Naive Bayes, Logistic, Linear Regression까지도 이 예제의 감각을 계속 가져가면 이해가 훨씬 편하다.</div>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 파라미터 추정을 넘어, 입력 \(X\)가 주어졌을 때 정답 클래스 \(Y\)를 맞히는 분류 문제로 확장한다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="classification">
+          <div class="section-head">
+            <div class="section-kicker">From Estimation to Classification</div>
+            <h2 class="section-title">5. 분류 문제로 어떻게 넘어가는가</h2>
+          </div>
+          <div class="section-body">
+            <h3>질문의 변화</h3>
+            <p>앞에서는 “어떤 \(\theta\)가 데이터를 잘 설명하는가?”를 물었다. 이제는 질문이 조금 바뀐다.</p>
+            <div class="quote">입력 \(X\)가 주어졌을 때, 클래스 \(Y\)를 알고 싶다.</div>
+
+            <div class="formula">$$P(Y\mid X)$$</div>
+            <p>즉 분류의 목표는 posterior class probability를 알고 싶은 것으로 표현된다.</p>
+
+            <h3>Bayes rule의 역할</h3>
+            <div class="formula">$$P(Y\mid X)=\frac{P(X\mid Y)P(Y)}{P(X)}$$</div>
+            <p>직접 \(P(Y\mid X)\)를 모델링하기 어렵다면, 클래스별 데이터 생성 방식 \(P(X\mid Y)\)와 class prior \(P(Y)\)를 모델링한 뒤 Bayes rule로 뒤집을 수 있다.</p>
+
+            <div class="summary-box">
+              <ul>
+                <li>\(P(Y)\): 각 클래스가 얼마나 자주 나타나는가</li>
+                <li>\(P(X\mid Y)\): 클래스가 주어졌을 때 데이터가 어떻게 생기는가</li>
+                <li>\(P(Y\mid X)\): 입력을 봤을 때 어느 클래스일 가능성이 큰가</li>
+              </ul>
+            </div>
+
+            <div class="bridge"><b>다음 연결:</b> 바로 이 generative 접근의 대표적인 모델이 Naive Bayes이다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="naive-bayes">
+          <div class="section-head">
+            <div class="section-kicker">Generative Model</div>
+            <h2 class="section-title">6. Naive Bayes</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 보는가</h3>
+            <p>Naive Bayes는 앞에서 본 확률 개념들이 실제 분류 문제에서 어떻게 사용되는지를 보여주는 대표적인 generative classifier다.</p>
+
+            <h3>기본 아이디어</h3>
+            <ul>
+              <li>먼저 \(P(Y)\)를 배운다.</li>
+              <li>그다음 \(P(X\mid Y)\)를 배운다.</li>
+              <li>Bayes rule로 \(P(Y\mid X)\)를 계산한다.</li>
+            </ul>
+            <p>즉 클래스가 데이터를 어떻게 생성하는지를 모델링한 뒤 분류한다.</p>
+
+            <h3>naive assumption</h3>
+            <div class="formula">$$P(X\mid Y)=\prod_{j=1}^d P(X_j\mid Y)$$</div>
+            <p>의미는 <b>“클래스 \(Y\)가 주어지면 feature들은 서로 독립이다”</b>이다.</p>
+
+            <h3>왜 이 가정이 중요한가</h3>
+            <p>원래 \(P(X\mid Y)\)는 고차원 joint distribution이라 다루기 어렵다. 그런데 독립 가정을 두면 여러 1차원 분포의 곱으로 분해되므로 계산이 매우 쉬워진다.</p>
+
+            <div class="note">Naive Bayes의 핵심은 현실을 완벽하게 반영하는 것이 아니라, 강한 가정으로 tractable한 계산을 얻는 데 있다.</div>
+
+            <h3>의사결정 규칙</h3>
+            <div class="formula">$$\hat y=\arg\max_y P(y\mid x)=\arg\max_y P(x\mid y)P(y)$$</div>
+            <p>여기서 \(P(x)\)는 모든 클래스에 대해 공통이므로 비교에서는 빠진다.</p>
+
+            <h3>종류</h3>
+            <div class="grid3">
+              <div class="mini-card">
+                <h4>Categorical NB</h4>
+                <p>feature가 범주형일 때 사용한다.</p>
+                <div class="formula">\(P(X_j=a\mid Y=c)\)</div>
+              </div>
+              <div class="mini-card">
+                <h4>Multinomial NB</h4>
+                <p>문서의 단어 count처럼 빈도형 feature에 사용한다.</p>
+                <div class="formula">\(\prod_j \theta_{jc}^{x_j}\)</div>
+              </div>
+              <div class="mini-card">
+                <h4>Gaussian NB</h4>
+                <p>연속형 feature를 Gaussian으로 모델링한다.</p>
+                <div class="formula">\(\mathcal N(\mu_{jc},\sigma_{jc}^2)\)</div>
+              </div>
+            </div>
+
+            <h3>Multinomial NB의 수식 의미</h3>
+            <div class="formula">$$P(x\mid m, y=c)=\frac{m!}{x_1!\cdots x_d!}\prod_{j=1}^d \theta_{jc}^{x_j}$$</div>
+            <p>여기서 조합항</p>
+            <div class="formula">$$\frac{m!}{x_1!\cdots x_d!}$$</div>
+            <p>은 같은 count vector를 만드는 여러 단어 순서의 개수를 세는 항이다. 즉 multinomial은 단순한 곱셈이 아니라 “그 count를 만들 수 있는 모든 순서”를 함께 고려한다.</p>
+
+            <h3>Gaussian NB의 의미</h3>
+            <div class="formula">$$P(x_j\mid y=c)=\mathcal N(\mu_{jc},\sigma_{jc}^2)$$</div>
+            <div class="formula">$$P(x\mid y=c)=\prod_{j=1}^d \mathcal N(x_j;\mu_{jc},\sigma_{jc}^2)$$</div>
+            <p>이는 클래스가 주어졌을 때 각 feature가 독립적인 Gaussian이라는 뜻이다.</p>
+
+            <h3>공분산 대각행렬의 뜻</h3>
+            <div class="formula">$$\Sigma_c=\mathrm{diag}(\sigma_{1c}^2,\dots,\sigma_{dc}^2)$$</div>
+            <p>off-diagonal 항이 0이라는 것은 feature 간 상관관계를 무시한다는 뜻이다. 즉 Gaussian NB는 클래스 내부에서 feature들 사이의 공동 움직임을 보지 않는다.</p>
+
+            <h3>장점과 한계</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>장점</th>
+                  <th>한계</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>계산이 빠르고 간단함</td>
+                  <td>독립 가정이 너무 강할 수 있음</td>
+                </tr>
+                <tr>
+                  <td>적은 데이터에서도 잘 작동 가능</td>
+                  <td>상관관계를 무시함</td>
+                </tr>
+                <tr>
+                  <td>텍스트 같은 sparse 데이터에 강함</td>
+                  <td>확률값 자체는 calibration이 안 좋을 수 있음</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="bridge"><b>다음 연결:</b> Naive Bayes는 generative 모델이지만, 특정 경우에는 결정경계가 선형처럼 보인다. 이 점이 Logistic Regression으로 넘어가는 중요한 다리다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="nb-linear">
+          <div class="section-head">
+            <div class="section-kicker">Bridge</div>
+            <h2 class="section-title">7. Naive Bayes도 왜 선형적으로 볼 수 있는가</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이 포인트가 중요한가</h3>
+            <p>Naive Bayes는 generative 모델이지만, 로그를 취해 클래스 점수를 비교하면 선형분류기처럼 보일 수 있다. 이 사실이 Logistic Regression으로 자연스럽게 이어진다.</p>
+
+            <div class="formula">$$\log P(y)+\sum_j x_j\log\theta_{jy}$$</div>
+            <p>두 클래스를 비교하면 결국</p>
+            <div class="formula">$$w^Tx+b$$</div>
+            <p>꼴로 정리될 수 있다. 즉 각 feature가 점수를 더하거나 빼는 방식으로 작동한다.</p>
+
+            <div class="quote">Naive Bayes가 “생성모델이면서도 선형 결정경계처럼 보일 수 있다”는 점이, 곧 “그렇다면 아예 \(P(Y\mid X)\)를 직접 선형적으로 모델링할 수 있지 않을까?”라는 질문으로 이어진다.</div>
+
+            <p>Gaussian NB의 경우에도 분산 구조가 단순하면 선형 경계가 나오고, 일반적으로는 quadratic 경계가 나올 수 있다. 즉 선형성은 모델 구조의 특별한 경우에서 나타난다.</p>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 generative 우회 없이, 아예 \(P(Y\mid X)\)를 직접 모델링하는 Logistic Regression으로 간다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="logistic">
+          <div class="section-head">
+            <div class="section-kicker">Discriminative Model</div>
+            <h2 class="section-title">8. Logistic Regression</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 보는가</h3>
+            <p>Naive Bayes가 \(P(X\mid Y)\)를 모델링해서 \(P(Y\mid X)\)를 얻는 generative 모델이었다면, Logistic Regression은 처음부터 \(P(Y\mid X)\)를 직접 모델링하는 discriminative 모델이다.</p>
+
+            <h3>기본 형태</h3>
+            <div class="formula">$$P(y=1\mid x)=\sigma(w^Tx+b)$$</div>
+            <div class="formula">$$\sigma(z)=\frac{1}{1+e^{-z}}$$</div>
+            <p>선형 점수 \(w^Tx+b\)는 원래 \(( -\infty,\infty )\) 범위를 가지므로 확률이 될 수 없다. 그래서 sigmoid가 이를 \([0,1]\) 구간으로 눌러 준다.</p>
+
+            <h3>왜 sigmoid를 쓰는가</h3>
+            <ul>
+              <li>큰 양수 입력은 1에 가까운 확률로 간다.</li>
+              <li>큰 음수 입력은 0에 가까운 확률로 간다.</li>
+              <li>즉 선형 점수를 확률적 해석이 가능한 값으로 바꾼다.</li>
+            </ul>
+
+            <h3>\(y\in\{-1,+1\}\) 표기의 장점</h3>
+            <div class="formula">$$P(y\mid x)=\frac{1}{1+e^{-y(w^Tx+b)}}$$</div>
+            <p>이렇게 쓰면 \(y(w^Tx+b)\) 하나로 해석이 깔끔해진다.</p>
+            <ul>
+              <li>\(y(w^Tx+b)&gt;0\): 맞게 예측</li>
+              <li>\(y(w^Tx+b)&lt;0\): 틀리게 예측</li>
+              <li>절댓값이 클수록 더 자신 있는 예측</li>
+            </ul>
+            <p>이 값은 margin처럼 작동한다.</p>
+
+            <h3>MLE 관점</h3>
+            <p>데이터 \(D=\{(x_i,y_i)\}_{i=1}^n\)에 대해 MLE는</p>
+            <div class="formula">$$\hat w=\arg\max_w P(D\mid w)$$</div>
+            <p>이고, 음의 로그우도를 최소화하면 결국</p>
+            <div class="formula">$$\min_w \sum_{i=1}^n \log\big(1+\exp(-y_iw^Tx_i)\big)$$</div>
+            <p>형태가 된다. 이것이 logistic loss이다.</p>
+
+            <h3>MAP 관점</h3>
+            <p>예를 들어</p>
+            <div class="formula">$$w\sim\mathcal N(0,\sigma^2I)$$</div>
+            <p>라는 prior를 두면, MAP는</p>
+            <div class="formula">$$\min_w \sum_{i=1}^n \log(1+\exp(-y_iw^Tx_i))+\lambda\|w\|_2^2$$</div>
+            <p>가 된다. 즉 L2 regularized logistic regression과 같아진다.</p>
+
+            <div class="summary-box">
+              <ul>
+                <li><b>Logistic의 MLE</b> = logistic loss 최소화</li>
+                <li><b>Logistic의 MAP</b> = logistic loss + L2 regularization</li>
+              </ul>
+            </div>
+
+            <h3>핵심 의미</h3>
+            <p>regularization은 갑자기 인위적으로 붙는 게 아니라, Bayesian 관점에서는 prior가 자연스럽게 만들어내는 항으로 해석된다.</p>
+
+            <h3>왜 곧바로 최적화로 가는가</h3>
+            <p>Logistic loss는 지수와 로그가 섞인 비선형 함수이므로, 일반적으로 선형회귀처럼 닫힌형 해를 깔끔하게 구할 수 없다. 그래서 반복 최적화가 필요하고, 그 대표가 Gradient Descent이다.</p>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 “gradient 반대 방향으로 간다”는 말이 정확히 무엇인지, 그리고 왜 그게 의미가 있는지 본다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="gd">
+          <div class="section-head">
+            <div class="section-kicker">Optimization</div>
+            <h2 class="section-title">9. Gradient Descent</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 필요한가</h3>
+            <p>Logistic Regression처럼 closed form이 없는 모델에서는 반복적으로 loss를 줄여 가며 파라미터를 업데이트해야 한다. 그 기본 알고리즘이 Gradient Descent이다.</p>
+
+            <h3>업데이트 식</h3>
+            <div class="formula">$$w_{t+1}=w_t-\alpha\nabla \ell(w_t)$$</div>
+            <ul>
+              <li>\(\nabla \ell(w_t)\): 가장 빨리 증가하는 방향</li>
+              <li>\(-\nabla \ell(w_t)\): 가장 빨리 감소하는 방향</li>
+              <li>\(\alpha\): learning rate 또는 step size</li>
+            </ul>
+
+            <h3>왜 gradient의 반대 방향인가</h3>
+            <div class="formula">$$\ell(w+s)\approx \ell(w)+\nabla \ell(w)^Ts$$</div>
+            <p>Taylor 1차 근사에 따르면, 작은 이동 \(s\)를 했을 때 loss 변화는 대략 \(\nabla \ell(w)^Ts\)로 결정된다. 이 값을 가장 작게 하려면 \(s\)가 \(-\nabla \ell(w)\) 방향이어야 한다. 그래서 gradient 반대 방향이 국소적으로 가장 빠른 감소 방향이 된다.</p>
+
+            <h3>stopping criteria</h3>
+            <div class="grid3">
+              <div class="mini-card">
+                <h4>gradient norm</h4>
+                <div class="formula">\(\|\nabla \ell(w_t)\|\approx 0\)</div>
+                <p>더 내려갈 방향이 거의 없다고 본다.</p>
+              </div>
+              <div class="mini-card">
+                <h4>loss change</h4>
+                <div class="formula">\(|\ell(w_{t+1})-\ell(w_t)|\approx 0\)</div>
+                <p>추가 업데이트로 개선이 거의 없다.</p>
+              </div>
+              <div class="mini-card">
+                <h4>parameter change</h4>
+                <div class="formula">\(\|w_{t+1}-w_t\|\approx 0\)</div>
+                <p>파라미터 업데이트가 사실상 멈췄다.</p>
+              </div>
+            </div>
+
+            <h3>learning rate의 중요성</h3>
+            <ul>
+              <li>너무 크면 optimum을 지나쳐 발산하거나 진동할 수 있다.</li>
+              <li>너무 작으면 수렴이 매우 느려진다.</li>
+            </ul>
+            <p>즉 Gradient Descent는 방향 정보뿐 아니라 step size 설정도 매우 중요하다.</p>
+
+            <div class="bridge"><b>다음 연결:</b> 그런데 GD가 항상 잘 되는 것은 아니다. 왜 어떤 경우에는 수렴을 보장할 수 있고, 어떤 경우에는 어려운지를 보려면 convexity와 smoothness가 필요하다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="convergence">
+          <div class="section-head">
+            <div class="section-kicker">Theory</div>
+            <h2 class="section-title">10. 수렴 이론: Convexity, Lipschitz, Taylor 기반 부등식</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 이론을 보는가</h3>
+            <p>Gradient Descent를 단순히 “잘 되는 방법”으로만 아는 것이 아니라, 어떤 조건 아래에서 왜 작동하는지 수학적으로 이해하기 위해 본다.</p>
+
+            <h3>Convexity</h3>
+            <div class="formula">$$f(\lambda x+(1-\lambda)y)\le \lambda f(x)+(1-\lambda)f(y),\qquad 0\le\lambda\le1$$</div>
+            <p>직관적으로는 그래프가 밥그릇처럼 휘어 있어 두 점을 잇는 선분이 그래프 위에 놓인다. 중요한 이유는 convex 함수에서는 local minimum이 global minimum이라는 점이다.</p>
+
+            <h3>L-Lipschitz gradient</h3>
+            <div class="formula">$$\|\nabla f(x)-\nabla f(y)\|\le L\|x-y\|$$</div>
+            <p>이것은 gradient가 너무 급격하게 변하지 않는다는 뜻이다. 즉 함수가 충분히 매끈하여, 현재 gradient 정보가 근처에서도 어느 정도 신뢰 가능하다는 의미다.</p>
+
+            <h3>smoothness inequality</h3>
+            <div class="formula">$$f(y)\le f(x)+\nabla f(x)^T(y-x)+\frac{L}{2}\|y-x\|^2$$</div>
+            <p>이 식은 함수값이 접선 근사에서 크게 벗어나더라도, 그 오차가 이차항 정도로 제어된다는 뜻이다. 즉 “너무 험하지 않다”는 것을 정식화한 것이다.</p>
+
+            <h3>왜 이차항이 나오는가</h3>
+            <p>gradient 변화는 거리의 1차 비례로 제한되고, 그 차이를 위치 차이에 대해 적분하면 함수값 차이에는 제곱항이 등장한다. 그래서 gradient는 선형으로 변하고 함수값 오차는 이차로 누적된다는 감각이 중요하다.</p>
+
+            <h3>수렴 증명의 두 claim</h3>
+            <div class="grid2">
+              <div class="mini-card">
+                <h4>Claim 1: Convexity가 주는 lower bound</h4>
+                <div class="formula">$$f(y)\ge f(x)+\nabla f(x)^T(y-x)$$</div>
+                <p>접선이 함수 아래에 있다는 뜻이다.</p>
+              </div>
+              <div class="mini-card">
+                <h4>Claim 2: Smoothness가 주는 upper bound</h4>
+                <div class="formula">$$f(y)\le f(x)+\nabla f(x)^T(y-x)+\frac{L}{2}\|y-x\|^2$$</div>
+                <p>접선 + 이차항이 함수 위를 잡는다는 뜻이다.</p>
+              </div>
+            </div>
+
+            <h3>텔레스코핑의 역할</h3>
+            <div class="formula">$$\|w_t-w^*\|^2-\|w_{t+1}-w^*\|^2$$</div>
+            <p>이런 형태를 여러 step에 대해 더하면 중간 항이 지워지고 처음과 끝만 남는다. 그래서 누적 감소량을 간단하게 정리할 수 있다.</p>
+
+            <h3>대표 수렴률</h3>
+            <div class="formula">$$f(w_k)-f(w^*)\le \frac{L\|w_0-w^*\|^2}{2k}$$</div>
+            <p>이는 convex + smooth 조건 아래 기본 Gradient Descent가 \(O(1/k)\) 속도로 최적값에 가까워진다는 뜻이다.</p>
+
+            <div class="summary-box">
+              <ul>
+                <li>Convexity는 “엉뚱한 local minimum에 갇히지 않음”을 도와준다.</li>
+                <li>Smoothness는 “현재 gradient 정보를 믿고 한 걸음 갈 수 있음”을 도와준다.</li>
+                <li>둘을 합치면 GD의 감소와 수렴을 정량적으로 말할 수 있다.</li>
+              </ul>
+            </div>
+
+            <div class="bridge"><b>다음 연결:</b> 기본 GD의 약점을 보완하려고 다양한 optimizer가 등장한다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="optimizers">
+          <div class="section-head">
+            <div class="section-kicker">Practice</div>
+            <h2 class="section-title">11. Optimizer들</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 필요한가</h3>
+            <p>기본 Gradient Descent는 단순하고 이론적으로 중요하지만, 실제로는 느리거나 진동할 수 있고, 좌표별 스케일 차이를 반영하지 못하는 경우가 많다.</p>
+
+            <h3>Batch / SGD / Mini-batch</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>방법</th>
+                  <th>특징</th>
+                  <th>장단점</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Batch GD</td>
+                  <td>전체 데이터로 gradient 계산</td>
+                  <td>정확하지만 비쌈</td>
+                </tr>
+                <tr>
+                  <td>SGD</td>
+                  <td>샘플 하나로 gradient 계산</td>
+                  <td>빠르지만 noisy</td>
+                </tr>
+                <tr>
+                  <td>Mini-batch SGD</td>
+                  <td>작은 묶음으로 계산</td>
+                  <td>실전에서 가장 흔한 절충안</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <h3>Momentum</h3>
+            <div class="formula">$$s_t=\beta s_{t-1}+\alpha g_t,\qquad w_{t+1}=w_t-s_t$$</div>
+            <p>이전 방향을 기억해 같은 방향으로는 가속하고, 왔다 갔다 하는 방향은 상쇄한다. 즉 관성을 넣어 진동을 줄이고 골짜기 방향으로 더 빨리 간다.</p>
+
+            <h3>AdaGrad</h3>
+            <p>좌표별로 누적된 gradient 크기를 반영해 step size를 조절한다. 많이 업데이트된 좌표는 더 조심스럽게, 드물게 업데이트된 좌표는 더 크게 움직이게 한다. sparse feature에 특히 유리하다.</p>
+
+            <h3>RMSProp</h3>
+            <p>AdaGrad는 누적합이 계속 커져 학습률이 너무 빨리 작아질 수 있다. RMSProp은 과거 gradient 제곱의 이동평균을 사용해 이 문제를 완화한다.</p>
+
+            <h3>Adam</h3>
+            <p>Momentum의 1차 모멘트와 RMSProp의 2차 모멘트를 결합한 방식이다. 실전에서 자주 쓰이는 기본 선택지이며, 일반적으로 안정적으로 잘 작동하는 편이다.</p>
+
+            <h3>Newton Method</h3>
+            <p>gradient뿐 아니라 Hessian까지 사용해 곡률 정보를 반영한다. 잘 맞는 상황에서는 매우 빠르지만, 2차 미분과 역행렬 계산 비용이 크다.</p>
+
+            <div class="bridge"><b>다음 연결:</b> 이제 최적화 이론을 다시 모델 쪽으로 연결해서, Logistic Regression의 gradient가 실제로 어떤 의미를 가지는지 본다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="linear-reg">
+          <div class="section-head">
+            <div class="section-kicker">Regression</div>
+            <h2 class="section-title">12. Linear Regression</h2>
+          </div>
+          <div class="section-body">
+            <h3>왜 마지막에 선형회귀로 가는가</h3>
+            <p>앞에서 분류 문제를 충분히 본 뒤, 연속값 예측 문제에서는 어떤 확률모형과 추정 방식이 나오는지 보기 위해 Linear Regression으로 간다. 여기서도 MLE와 MAP 관점이 그대로 살아 있다.</p>
+
+            <h3>모델</h3>
+            <div class="formula">$$y=w^Tx+b+\varepsilon$$</div>
+            <div class="formula">$$\varepsilon\sim\mathcal N(0,\sigma^2)$$</div>
+            <p>즉 출력의 평균은 선형이고, 오차는 Gaussian noise라고 가정한다.</p>
+
+            <h3>확률적 의미</h3>
+            <div class="formula">$$y_i\mid x_i\sim \mathcal N(w^Tx_i+b,\sigma^2)$$</div>
+            <p>선형회귀는 단순히 직선을 맞추는 기하학적 문제가 아니라, <b>“평균은 선형이고 오차는 Gaussian이다”</b>라는 확률모형이다.</p>
+
+            <h3>MLE</h3>
+            <div class="formula">$$P(D\mid w,b)=\prod_{i=1}^n \frac{1}{\sqrt{2\pi\sigma^2}}\exp\left(-\frac{(y_i-(w^Tx_i+b))^2}{2\sigma^2}\right)$$</div>
+            <p>로그를 취하면 결국</p>
+            <div class="formula">$$\min_w \sum_{i=1}^n (y_i-(w^Tx_i+b))^2$$</div>
+            <p>가 된다. 즉 Gaussian noise 가정 아래 MLE는 MSE / SSE / OLS 최소화와 같다.</p>
+
+            <h3>왜 최대화가 최소화가 되는가</h3>
+            <p>로그우도를 정리하면 앞에 마이너스가 붙은 제곱오차합이 나온다. 따라서 likelihood 최대화는 제곱오차합 최소화와 동치가 된다.</p>
+
+            <h3>closed form</h3>
+            <div class="formula">$$w^*=(X^TX)^{-1}X^Ty$$</div>
+            <p>조건이 맞으면 normal equation으로 해를 직접 구할 수 있다. 이것이 Logistic Regression과의 중요한 차이점이다.</p>
+
+            <h3>MAP와 Ridge</h3>
+            <p>prior를</p>
+            <div class="formula">$$w\sim\mathcal N(0,\tau^2I)$$</div>
+            <p>로 두면 MAP는</p>
+            <div class="formula">$$\min_w \sum_{i=1}^n (y_i-(w^Tx_i+b))^2+\lambda\|w\|^2$$</div>
+            <p>가 된다. 즉 MAP는 Ridge Regression으로 이어진다.</p>
+
+            <h3>regularization의 해석</h3>
+            <p>오차항은 데이터를 잘 맞추려는 힘이고, 규제항은 \(w\)가 너무 커지지 않게 하려는 힘이다. Bayesian 관점에서는 이 규제항이 곧 prior에서 자연스럽게 나온다.</p>
+
+            <div class="formula">$$\lambda\propto \frac{\sigma^2}{\tau^2}$$</div>
+            <p>즉 데이터 노이즈가 크거나, \(w\)는 원래 0 근처일 것이라는 믿음이 강할수록 regularization이 강해진다.</p>
+
+            <h3>closed form이 있는데 왜 GD도 배우는가</h3>
+            <ul>
+              <li>데이터가 크면 \(X^TX\) 계산이 비쌀 수 있다.</li>
+              <li>역행렬 계산 비용과 메모리 부담이 크다.</li>
+              <li>실전에서는 반복 최적화가 더 현실적일 수 있다.</li>
+            </ul>
+
+            <div class="bridge"><b>전체 연결:</b> 결국 Linear Regression도 확률모형, MLE, MAP, regularization, optimization이라는 같은 줄기 안에 있다.</div>
+          </div>
+        </section>
+
+        <section class="section-card" id="wrapup">
+          <div class="section-head">
+            <div class="section-kicker">Wrap-up</div>
+            <h2 class="section-title">13. 최종 요약</h2>
+          </div>
+          <div class="section-body">
+            <div class="summary-box">
+              <ul>
+                <li>우리가 계속 붙잡고 있었던 중심 질문은 <b>“데이터를 보고 숨겨진 파라미터를 어떻게 추정할 것인가?”</b>였다.</li>
+                <li>\(P(D\mid\theta)\)는 likelihood이고, \(P(\theta\mid D)\)는 posterior이다.</li>
+                <li>MLE는 likelihood를 최대화하고, MAP는 likelihood와 prior를 함께 본다.</li>
+                <li>Frequentist는 파라미터를 고정된 값으로 보고, Bayesian은 파라미터에 대한 분포를 허용한다.</li>
+                <li>Coin Tossing은 likelihood, MLE, prior, posterior, MAP, true Bayesian prediction을 한 번에 보여주는 원형 예제다.</li>
+                <li>Naive Bayes는 \(P(X\mid Y)\)와 \(P(Y)\)를 모델링하는 generative classifier다.</li>
+                <li>Naive assumption은 feature 독립 가정이며, 계산 가능성을 준다.</li>
+                <li>Naive Bayes는 특정 조건에서 선형 결정경계처럼 보일 수 있고, 이것이 Logistic Regression으로 이어진다.</li>
+                <li>Logistic Regression은 \(P(Y\mid X)\)를 직접 모델링하는 discriminative model이다.</li>
+                <li>Logistic의 MLE는 logistic loss 최소화, MAP는 L2 regularization과 연결된다.</li>
+                <li>Logistic은 closed form이 없어서 Gradient Descent가 필요하다.</li>
+                <li>Gradient Descent의 핵심은 gradient 반대 방향이 국소적으로 가장 빠른 감소 방향이라는 점이다.</li>
+                <li>수렴 이론에는 convexity, Lipschitz gradient, smoothness inequality, telescoping이 핵심 역할을 한다.</li>
+                <li>Optimizer들은 기본 GD의 느림, 진동, 고정 학습률 문제를 보완한다.</li>
+                <li>Linear Regression은 Gaussian noise 가정 아래 MLE가 MSE/OLS로, MAP가 Ridge로 이어진다.</li>
+                <li>결국 regularization은 Bayesian prior의 해석을 가진다.</li>
+              </ul>
+            </div>
+
+            <div class="quote">즉, 확률과 파라미터의 의미에서 시작해 MLE/MAP, Naive Bayes, Logistic Regression, Gradient Descent, Linear Regression까지 이어지는 전체 흐름은 전부 하나의 질문에서 출발한 것이다.</div>
+          </div>
+        </section>
+
+        <div class="footer">© 2026 Machine Learning Notes</div>
+      </article>
+    </main>
+  </div>
+
+  <script>
+    const miniLinks = [...document.querySelectorAll('.mini-link')];
+    const observedSections = [...document.querySelectorAll('.section-card'), document.querySelector('#flow')].filter(Boolean);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          miniLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === `#${id}`);
+          });
+        }
+      });
+    }, {
+      rootMargin:'-20% 0px -60% 0px',
+      threshold:0.05
+    });
+
+    observedSections.forEach(section => observer.observe(section));
+  </script>
+</body>
+</html>
