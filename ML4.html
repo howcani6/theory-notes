@@ -779,8 +779,12 @@
               <div class="mini-card">
                 <h4>Multinomial NB</h4>
                 <p>문서의 단어 count처럼 빈도형 feature에 사용한다.</p>
-                <div class="formula">\(\prod_j \theta_{jc}^{x_j}\)</div>
-              </div>
+                <div class="formula">\[P(x\mid c)\propto \prod_{j=1}^{d}\theta_{jc}^{x_j}\]</div>
+                <ul>
+                   <li>\(x_j\): \(j\)번째 단어의 등장 횟수</li>
+                   <li>\(\theta_{jc}=P(\text{word }j\mid c)\): 클래스 \(c\)에서 단어 \(j\)가 나올 확률</li>
+                </ul>
+                </div>
               <div class="mini-card">
                 <h4>Gaussian NB</h4>
                 <p>연속형 feature를 Gaussian으로 모델링한다.</p>
